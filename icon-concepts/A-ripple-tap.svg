@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="Nudge icon concept A — Ripple Tap">
+  <title>Nudge — Ripple Tap</title>
+  <defs>
+    <linearGradient id="bgA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#0d9488"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="200" ry="200" fill="url(#bgA)"/>
+  <!-- outer ripple -->
+  <circle cx="512" cy="512" r="340" fill="none" stroke="#ffffff" stroke-opacity="0.22" stroke-width="10"/>
+  <!-- inner ripple -->
+  <circle cx="512" cy="512" r="230" fill="none" stroke="#ffffff" stroke-opacity="0.55" stroke-width="14"/>
+  <!-- core dot -->
+  <circle cx="512" cy="512" r="120" fill="#ffffff"/>
+</svg>

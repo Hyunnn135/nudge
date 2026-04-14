@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="Nudge icon concept C — Single Notch">
+  <title>Nudge — Single Notch</title>
+  <!-- near-white teal-tinted bg for softness -->
+  <rect width="1024" height="1024" rx="200" ry="200" fill="#f0fdfa"/>
+  <!-- subtle inner frame to give depth without shadow -->
+  <rect x="40" y="40" width="944" height="944" rx="170" ry="170" fill="none" stroke="#ccfbf1" stroke-width="2"/>
+  <!-- single vertical tally mark -->
+  <rect x="476" y="332" width="72" height="360" rx="36" ry="36" fill="#0d9488"/>
+</svg>

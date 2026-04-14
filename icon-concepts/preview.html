@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nudge — 아이콘 컨셉 프리뷰</title>
+<style>
+  :root {
+    --ink: #0f172a;
+    --muted: #475569;
+    --line: #e2e8f0;
+    --bg: #f8fafc;
+    --teal: #0d9488;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0;
+    padding: 48px 32px 96px;
+    line-height: 1.5;
+  }
+  header { max-width: 1040px; margin: 0 auto 40px; }
+  h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.02em; }
+  header p { color: var(--muted); margin: 0; font-size: 15px; }
+  main {
+    max-width: 1040px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 32px;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .card h2 {
+    margin: 0;
+    font-size: 17px;
+    letter-spacing: -0.01em;
+  }
+  .card h2 .tag {
+    display: inline-block;
+    font-size: 11px;
+    background: var(--teal);
+    color: #fff;
+    border-radius: 999px;
+    padding: 2px 10px;
+    margin-right: 8px;
+    vertical-align: 2px;
+    font-weight: 600;
+  }
+  .sizes {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #f1f5f9, #e2e8f0);
+  }
+  .sizes .icon {
+    background: #fff;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  }
+  .icon { border-radius: 22%; overflow: hidden; }
+  .icon.lg { width: 160px; height: 160px; }
+  .icon.md { width: 96px; height: 96px; }
+  .icon.sm { width: 60px; height: 60px; }
+  .icon img, .icon svg { display: block; width: 100%; height: 100%; }
+  .desc { color: var(--muted); font-size: 13px; }
+  .desc strong { color: var(--ink); font-weight: 600; }
+  .recommend {
+    border: 2px solid var(--teal);
+    position: relative;
+  }
+  .recommend::after {
+    content: "1순위 추천";
+    position: absolute;
+    top: -12px; right: 20px;
+    background: var(--teal);
+    color: #fff;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+  footer {
+    max-width: 1040px;
+    margin: 48px auto 0;
+    color: var(--muted);
+    font-size: 13px;
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
+  }
+  .palette {
+    display: flex; gap: 8px; margin-top: 12px;
+  }
+  .swatch {
+    flex: 1;
+    height: 44px; border-radius: 10px;
+    display: flex; align-items: flex-end; justify-content: center;
+    font-size: 10px; padding-bottom: 4px;
+    color: #fff; font-weight: 600;
+    border: 1px solid rgba(15,23,42,0.06);
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Nudge — 아이콘 컨셉 4종 프리뷰</h1>
+    <p>1024×1024 SVG 원본. 각 카드에 대형/중형/소형 3사이즈로 렌더링 (홈스크린/스포트라이트/세팅앱 시뮬레이션)</p>
+    <div class="palette">
+      <div class="swatch" style="background:#f0fdfa;color:#0d9488;">teal 50</div>
+      <div class="swatch" style="background:#ccfbf1;color:#0d9488;">teal 100</div>
+      <div class="swatch" style="background:#5eead4;color:#0f172a;">teal 300</div>
+      <div class="swatch" style="background:#14b8a6;">teal 500</div>
+      <div class="swatch" style="background:#0d9488;">teal 600</div>
+      <div class="swatch" style="background:#0f766e;">teal 700</div>
+      <div class="swatch" style="background:#0f172a;">ink</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card recommend">
+      <h2><span class="tag">A</span>Ripple Tap</h2>
+      <div class="sizes">
+        <div class="icon lg"><object type="image/svg+xml" data="A-ripple-tap.svg"></object></div>
+        <div class="icon md"><object type="image/svg+xml" data="A-ripple-tap.svg"></object></div>
+        <div class="icon sm"><object type="image/svg+xml" data="A-ripple-tap.svg"></object></div>
+      </div>
+      <p class="desc"><strong>탭 → 파동</strong>. 중앙 점 + 두 겹의 얇은 링으로 "작은 행동이 번진다"는 철학을 그대로 표현.</p>
+    </section>
+
+    <section class="card">
+      <h2><span class="tag">B</span>+1 Badge</h2>
+      <div class="sizes">
+        <div class="icon lg"><object type="image/svg+xml" data="B-plus-one.svg"></object></div>
+        <div class="icon md"><object type="image/svg+xml" data="B-plus-one.svg"></object></div>
+        <div class="icon sm"><object type="image/svg+xml" data="B-plus-one.svg"></object></div>
+      </div>
+      <p class="desc"><strong>+1 타이포그래피</strong>. 앱 스토어에서 기능 전달이 가장 빠름. 미니멀 정체성과는 약간 거리.</p>
+    </section>
+
+    <section class="card">
+      <h2><span class="tag">C</span>Single Notch</h2>
+      <div class="sizes">
+        <div class="icon lg"><object type="image/svg+xml" data="C-single-notch.svg"></object></div>
+        <div class="icon md"><object type="image/svg+xml" data="C-single-notch.svg"></object></div>
+        <div class="icon sm"><object type="image/svg+xml" data="C-single-notch.svg"></object></div>
+      </div>
+      <p class="desc"><strong>tally 한 획</strong>. 극단 미니멀. "딱 한 개"와 직결. 작은 사이즈 가독성이 리스크.</p>
+    </section>
+
+    <section class="card">
+      <h2><span class="tag">D</span>Fingertip Dot</h2>
+      <div class="sizes">
+        <div class="icon lg"><object type="image/svg+xml" data="D-fingertip-dot.svg"></object></div>
+        <div class="icon md"><object type="image/svg+xml" data="D-fingertip-dot.svg"></object></div>
+        <div class="icon sm"><object type="image/svg+xml" data="D-fingertip-dot.svg"></object></div>
+      </div>
+      <p class="desc"><strong>손가락 끝 점</strong>. 여백 미학. "누르고 싶게" 유도. 존재감은 약함.</p>
+    </section>
+  </main>
+
+  <footer>
+    Phase 0 마지막 산출물 · DESIGN.md와 1:1 매핑 · Phase 1에서 A안 PNG 익스포트 후 실기 테스트 예정.
+  </footer>
+</body>
+</html>

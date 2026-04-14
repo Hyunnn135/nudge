@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nudge — 화면 시안 (4화면)</title>
+<style>
+  :root {
+    --teal-50: #f0fdfa;
+    --teal-100: #ccfbf1;
+    --teal-300: #5eead4;
+    --teal-500: #14b8a6;
+    --teal-600: #0d9488;
+    --teal-700: #0f766e;
+    --ink: #0f172a;
+    --slate-600: #475569;
+    --slate-400: #94a3b8;
+    --slate-200: #e2e8f0;
+    --slate-100: #f1f5f9;
+    --page-bg: #eef2f5;
+  }
+  * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "SF Pro", system-ui, sans-serif;
+    background: var(--page-bg);
+    color: var(--ink);
+    padding: 56px 24px 96px;
+    line-height: 1.4;
+  }
+  header.page {
+    max-width: 1440px;
+    margin: 0 auto 48px;
+  }
+  header.page h1 {
+    font-size: 30px; margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+  header.page p {
+    color: var(--slate-600);
+    margin: 0;
+    font-size: 15px;
+  }
+  .legend {
+    display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap;
+    font-size: 12px;
+  }
+  .legend .chip {
+    padding: 6px 12px; border-radius: 999px;
+    background: #fff; border: 1px solid var(--slate-200);
+    color: var(--slate-600);
+  }
+  .legend .chip strong { color: var(--ink); font-weight: 600; }
+
+  .screens {
+    max-width: 1440px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 48px 32px;
+    justify-items: center;
+  }
+  figure.phone {
+    margin: 0;
+    width: 320px;
+  }
+  figure.phone figcaption {
+    font-size: 13px;
+    color: var(--slate-600);
+    margin-top: 14px;
+    text-align: center;
+    line-height: 1.5;
+  }
+  figure.phone figcaption strong {
+    display: block; color: var(--ink); font-weight: 600; font-size: 14px; margin-bottom: 2px;
+  }
+
+  /* --- iPhone 외곽 프레임 (약식 iPhone 15 비율: 390×844) --- */
+  .frame {
+    position: relative;
+    width: 320px;
+    height: 690px;
+    background: #0f172a;
+    border-radius: 44px;
+    padding: 10px;
+    box-shadow:
+      0 0 0 2px #1e293b inset,
+      0 24px 48px -12px rgba(15,23,42,0.35);
+  }
+  .screen {
+    position: relative;
+    width: 100%; height: 100%;
+    background: #ffffff;
+    border-radius: 34px;
+    overflow: hidden;
+  }
+  /* Dynamic Island 흉내 */
+  .island {
+    position: absolute;
+    top: 12px; left: 50%;
+    transform: translateX(-50%);
+    width: 96px; height: 26px;
+    background: #000;
+    border-radius: 999px;
+    z-index: 10;
+  }
+  /* 상태바 */
+  .statusbar {
+    padding: 18px 22px 0;
+    display: flex; justify-content: space-between;
+    font-size: 14px; font-weight: 600; color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .statusbar .icons { display: flex; gap: 4px; align-items: center; font-size: 12px; color: var(--slate-600); }
+
+  /* 공통 화면 레이아웃 */
+  .body {
+    padding: 44px 24px 28px;
+    height: calc(100% - 34px);
+    display: flex; flex-direction: column;
+  }
+
+  /* ---------- 화면 1: 메인 카운터 ---------- */
+  .s1 .top-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 44px;
+  }
+  .s1 .exercise-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px;
+    background: var(--teal-50);
+    border-radius: 999px;
+    color: var(--teal-700);
+    font-size: 13px; font-weight: 600;
+  }
+  .s1 .exercise-pill .dot {
+    width: 6px; height: 6px; background: var(--teal-500);
+    border-radius: 50%;
+  }
+  .s1 .chart-btn {
+    width: 36px; height: 36px; border-radius: 12px;
+    background: var(--slate-100);
+    color: var(--slate-600);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .s1 .count-wrap {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .s1 .count-label {
+    font-size: 12px; letter-spacing: 0.1em;
+    color: var(--slate-400); font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .s1 .count {
+    font-size: 128px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .s1 .count .delta {
+    display: inline-block; font-size: 18px;
+    color: var(--teal-500);
+    vertical-align: 60px;
+    margin-left: 4px;
+    opacity: 0.7;
+  }
+  .s1 .count-sub {
+    font-size: 14px; color: var(--slate-600);
+    margin-top: 8px;
+  }
+  .s1 .actions {
+    display: flex; flex-direction: column; align-items: center; gap: 18px;
+    margin-top: 12px;
+  }
+  .s1 .plus-btn {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: var(--teal-500);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 72px; font-weight: 300; line-height: 1;
+    box-shadow: 0 12px 28px -8px rgba(20, 184, 166, 0.55);
+  }
+  .s1 .undo {
+    font-size: 13px; color: var(--slate-400); font-weight: 500;
+  }
+  .s1 .undo strong { color: var(--slate-600); font-weight: 600; margin-right: 4px; }
+
+  /* ---------- 화면 2: 운동 선택 ---------- */
+  .s2 .heading {
+    margin-bottom: 36px;
+  }
+  .s2 .heading .eyebrow {
+    font-size: 12px; letter-spacing: 0.1em; color: var(--teal-600);
+    text-transform: uppercase; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .s2 .heading h2 {
+    font-size: 24px; margin: 0; letter-spacing: -0.015em;
+    color: var(--ink); line-height: 1.25;
+  }
+  .s2 .list {
+    display: flex; flex-direction: column; gap: 12px;
+    flex: 1;
+  }
+  .s2 .row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 20px;
+    border: 1px solid var(--slate-200);
+    border-radius: 18px;
+    background: #fff;
+  }
+  .s2 .row.active {
+    border-color: var(--teal-500);
+    background: var(--teal-50);
+  }
+  .s2 .row .ic {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: var(--slate-100);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .s2 .row .ic svg { width: 30px; height: 30px; }
+  .s2 .row.active .ic {
+    background: var(--teal-100);
+  }
+  .s2 .row .tx { flex: 1; }
+  .s2 .row .nm {
+    font-size: 16px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em;
+  }
+  .s2 .row .sub {
+    font-size: 12px; color: var(--slate-400); margin-top: 2px;
+  }
+  .s2 .row .check {
+    color: var(--teal-500); font-size: 18px; font-weight: 700;
+  }
+  .s2 .foot {
+    margin-top: 20px; text-align: center;
+    font-size: 12px; color: var(--slate-400);
+  }
+
+  /* ---------- 화면 3: 일간 통계 ---------- */
+  .s3 .nav {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 28px;
+  }
+  .s3 .nav .back { font-size: 17px; color: var(--teal-600); font-weight: 500; }
+  .s3 .nav .date { font-size: 14px; color: var(--slate-600); font-weight: 600; }
+  .s3 .hero {
+    text-align: center; padding: 12px 0 24px;
+  }
+  .s3 .hero .lab {
+    font-size: 12px; color: var(--slate-400); letter-spacing: 0.1em;
+    text-transform: uppercase; font-weight: 600; margin-bottom: 4px;
+  }
+  .s3 .hero .big {
+    font-size: 72px; font-weight: 800; line-height: 1;
+    letter-spacing: -0.035em; color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .s3 .hero .sub {
+    font-size: 13px; color: var(--slate-600); margin-top: 8px;
+  }
+  .s3 .bd {
+    display: flex; flex-direction: column; gap: 10px;
+    margin-top: 8px;
+  }
+  .s3 .bd-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px;
+    background: var(--slate-100);
+    border-radius: 14px;
+  }
+  .s3 .bd-row .ic {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .s3 .bd-row .ic svg { width: 20px; height: 20px; }
+  .s3 .bd-row .nm { flex: 1; font-size: 14px; font-weight: 600; color: var(--ink); }
+  .s3 .bd-row .n { font-size: 20px; font-weight: 700; color: var(--teal-600); font-variant-numeric: tabular-nums; }
+  .s3 .lifetime {
+    margin-top: auto;
+    padding: 14px 16px;
+    border: 1px dashed var(--slate-200);
+    border-radius: 14px;
+    text-align: center;
+    font-size: 12px; color: var(--slate-600);
+  }
+  .s3 .lifetime strong {
+    display: block; color: var(--ink); font-size: 18px; font-weight: 700;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- 화면 4: 주간 통계 ---------- */
+  .s4 .nav {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px;
+  }
+  .s4 .nav .back { font-size: 17px; color: var(--teal-600); font-weight: 500; }
+  .s4 .nav .title { font-size: 14px; color: var(--ink); font-weight: 700; }
+  .s4 .seg {
+    display: flex; background: var(--slate-100); border-radius: 10px; padding: 3px;
+    margin-bottom: 24px;
+  }
+  .s4 .seg button {
+    flex: 1; border: 0; background: transparent; padding: 8px 0;
+    font-size: 12px; font-weight: 600; color: var(--slate-600);
+    border-radius: 8px;
+    font-family: inherit;
+  }
+  .s4 .seg button.on {
+    background: #fff; color: var(--ink);
+    box-shadow: 0 1px 3px rgba(15,23,42,0.08);
+  }
+  .s4 .hero { margin-bottom: 24px; }
+  .s4 .hero .lab { font-size: 12px; color: var(--slate-400); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; }
+  .s4 .hero .big { font-size: 40px; font-weight: 800; letter-spacing: -0.03em; color: var(--ink); line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .s4 .hero .delta { font-size: 12px; color: var(--teal-600); font-weight: 600; margin-top: 2px; }
+  .s4 .chart {
+    flex: 1;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 6px;
+    padding: 0 4px 24px;
+    border-bottom: 1px solid var(--slate-200);
+  }
+  .s4 .bar-wrap {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .s4 .bar-stack {
+    width: 100%; max-width: 32px;
+    border-radius: 8px; overflow: hidden;
+    display: flex; flex-direction: column;
+    background: var(--slate-100);
+    height: 180px;
+    justify-content: flex-end;
+  }
+  .s4 .seg-p { background: var(--teal-600); }
+  .s4 .seg-u { background: var(--teal-500); }
+  .s4 .seg-s { background: var(--teal-300); }
+  .s4 .day { font-size: 11px; color: var(--slate-400); font-weight: 500; }
+  .s4 .day.today { color: var(--teal-600); font-weight: 700; }
+  .s4 .key {
+    display: flex; justify-content: center; gap: 14px;
+    margin-top: 16px; font-size: 11px; color: var(--slate-600);
+  }
+  .s4 .key .kk { display: inline-flex; align-items: center; gap: 6px; }
+  .s4 .key .sw { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* footer */
+  footer.page {
+    max-width: 1440px; margin: 72px auto 0;
+    border-top: 1px solid var(--slate-200);
+    padding-top: 24px;
+    color: var(--slate-600); font-size: 13px;
+    line-height: 1.7;
+  }
+  footer.page strong { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+  <header class="page">
+    <h1>Nudge — 핵심 4화면 시안</h1>
+    <p>DESIGN.md 기준(Teal 팔레트 · SF Pro Rounded · 여백 우선). 인터랙션은 static mockup 이므로 실제 동작은 아님.</p>
+    <div class="legend">
+      <span class="chip"><strong>1</strong> 메인 카운터</span>
+      <span class="chip"><strong>2</strong> 운동 선택</span>
+      <span class="chip"><strong>3</strong> 일간 통계</span>
+      <span class="chip"><strong>4</strong> 주간 통계</span>
+      <span class="chip">iPhone 15 비율 · 라이트 모드</span>
+    </div>
+  </header>
+
+  <section class="screens">
+
+    <!-- 화면 1: 메인 카운터 -->
+    <figure class="phone">
+      <div class="frame"><div class="screen s1">
+        <div class="island"></div>
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="icons">● ▮▮▮ ▰▱</span>
+        </div>
+        <div class="body">
+          <div class="top-row">
+            <span class="exercise-pill"><span class="dot"></span>푸시업</span>
+            <span class="chart-btn">▤</span>
+          </div>
+          <div class="count-wrap">
+            <div class="count-label">TODAY</div>
+            <div class="count">45<span class="delta">+1</span></div>
+            <div class="count-sub">오늘 하루 쌓은 개수</div>
+          </div>
+          <div class="actions">
+            <div class="plus-btn">+</div>
+            <div class="undo"><strong>↶ 방금 1개 취소</strong></div>
+          </div>
+        </div>
+      </div></div>
+      <figcaption>
+        <strong>① 메인 카운터</strong>
+        상단 pill=활성 운동(탭 → 화면②) · 우상단=통계(화면③) · 중앙 대형 숫자 + "+1" 버튼 · 실수 회복용 undo
+      </figcaption>
+    </figure>
+
+    <!-- 화면 2: 운동 선택 -->
+    <figure class="phone">
+      <div class="frame"><div class="screen s2">
+        <div class="island"></div>
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="icons">● ▮▮▮ ▰▱</span>
+        </div>
+        <div class="body">
+          <div class="heading">
+            <div class="eyebrow">오늘 뭐 할래요</div>
+            <h2>지금 기록할<br>운동을 골라주세요</h2>
+          </div>
+          <div class="list">
+            <div class="row active">
+              <div class="ic"><svg viewBox="0 0 48 48" fill="none" stroke="#0d9488" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="19" r="3" fill="#0d9488"/><line x1="14" y1="21" x2="40" y2="26"/><line x1="15" y1="21" x2="15" y2="34"/><line x1="38" y1="25" x2="43" y2="34"/><line x1="6" y1="37" x2="44" y2="37" stroke-opacity="0.35" stroke-width="1.5"/></svg></div>
+              <div class="tx">
+                <div class="nm">푸시업</div>
+                <div class="sub">오늘 45개 · 이번 주 312개</div>
+              </div>
+              <div class="check">✓</div>
+            </div>
+            <div class="row">
+              <div class="ic"><svg viewBox="0 0 48 48" fill="none" stroke="#0d9488" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" y1="8" x2="42" y2="8" stroke-width="3"/><line x1="18" y1="9" x2="18" y2="15"/><line x1="30" y1="9" x2="30" y2="15"/><circle cx="24" cy="17" r="3" fill="#0d9488"/><line x1="24" y1="20" x2="24" y2="32"/><line x1="24" y1="32" x2="20" y2="40"/><line x1="24" y1="32" x2="28" y2="40"/></svg></div>
+              <div class="tx">
+                <div class="nm">풀업</div>
+                <div class="sub">오늘 0개 · 이번 주 24개</div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="ic"><svg viewBox="0 0 48 48" fill="none" stroke="#0d9488" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="10" r="3" fill="#0d9488"/><line x1="24" y1="13" x2="24" y2="24"/><line x1="24" y1="17" x2="14" y2="20"/><line x1="24" y1="17" x2="34" y2="20"/><line x1="24" y1="24" x2="16" y2="30"/><line x1="16" y1="30" x2="16" y2="40"/><line x1="24" y1="24" x2="32" y2="30"/><line x1="32" y1="30" x2="32" y2="40"/></svg></div>
+              <div class="tx">
+                <div class="nm">스쿼트</div>
+                <div class="sub">오늘 12개 · 이번 주 67개</div>
+              </div>
+            </div>
+          </div>
+          <div class="foot">위젯도 선택한 운동을 기록해요</div>
+        </div>
+      </div></div>
+      <figcaption>
+        <strong>② 운동 선택</strong>
+        3가지 고정 · 현재 활성(teal 50 배경 + 체크) · 행마다 오늘/이번 주 수치를 살짝만 노출 (비교 유발 방지)
+      </figcaption>
+    </figure>
+
+    <!-- 화면 3: 일간 통계 -->
+    <figure class="phone">
+      <div class="frame"><div class="screen s3">
+        <div class="island"></div>
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="icons">● ▮▮▮ ▰▱</span>
+        </div>
+        <div class="body">
+          <div class="nav">
+            <span class="back">‹ 뒤로</span>
+            <span class="date">4월 14일 화요일</span>
+            <span style="width:32px"></span>
+          </div>
+          <div class="hero">
+            <div class="lab">TODAY TOTAL</div>
+            <div class="big">57</div>
+            <div class="sub">세 운동 합계 · 어제보다 +12</div>
+          </div>
+          <div class="bd">
+            <div class="bd-row">
+              <div class="ic"><svg viewBox="0 0 48 48" fill="none" stroke="#0d9488" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="19" r="3" fill="#0d9488"/><line x1="14" y1="21" x2="40" y2="26"/><line x1="15" y1="21" x2="15" y2="34"/><line x1="38" y1="25" x2="43" y2="34"/><line x1="6" y1="37" x2="44" y2="37" stroke-opacity="0.35" stroke-width="1.5"/></svg></div>
+              <div class="nm">푸시업</div>
+              <div class="n">45</div>
+            </div>
+            <div class="bd-row">
+              <div class="ic"><svg viewBox="0 0 48 48" fill="none" stroke="#0d9488" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" y1="8" x2="42" y2="8" stroke-width="3"/><line x1="18" y1="9" x2="18" y2="15"/><line x1="30" y1="9" x2="30" y2="15"/><circle cx="24" cy="17" r="3" fill="#0d9488"/><line x1="24" y1="20" x2="24" y2="32"/><line x1="24" y1="32" x2="20" y2="40"/><line x1="24" y1="32" x2="28" y2="40"/></svg></div>
+              <div class="nm">풀업</div>
+              <div class="n">0</div>
+            </div>
+            <div class="bd-row">
+              <div class="ic"><svg viewBox="0 0 48 48" fill="none" stroke="#0d9488" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="24" cy="10" r="3" fill="#0d9488"/><line x1="24" y1="13" x2="24" y2="24"/><line x1="24" y1="17" x2="14" y2="20"/><line x1="24" y1="17" x2="34" y2="20"/><line x1="24" y1="24" x2="16" y2="30"/><line x1="16" y1="30" x2="16" y2="40"/><line x1="24" y1="24" x2="32" y2="30"/><line x1="32" y1="30" x2="32" y2="40"/></svg></div>
+              <div class="nm">스쿼트</div>
+              <div class="n">12</div>
+            </div>
+          </div>
+          <div class="lifetime">
+            평생 누적
+            <strong>4,218</strong>
+          </div>
+        </div>
+      </div></div>
+      <figcaption>
+        <strong>③ 일간 통계</strong>
+        오늘 총합(큰 숫자) · 운동별 3행 · 하단 dashed 박스에 평생 누적(허영 지표, 최소 노출)
+      </figcaption>
+    </figure>
+
+    <!-- 화면 4: 주간 통계 -->
+    <figure class="phone">
+      <div class="frame"><div class="screen s4">
+        <div class="island"></div>
+        <div class="statusbar">
+          <span>9:41</span>
+          <span class="icons">● ▮▮▮ ▰▱</span>
+        </div>
+        <div class="body">
+          <div class="nav">
+            <span class="back">‹ 뒤로</span>
+            <span class="title">통계</span>
+            <span style="width:32px"></span>
+          </div>
+          <div class="seg">
+            <button>일</button>
+            <button class="on">주</button>
+            <button>월</button>
+            <button>년</button>
+          </div>
+          <div class="hero">
+            <div class="lab">THIS WEEK</div>
+            <div class="big">403</div>
+            <div class="delta">▲ 지난 주보다 +58</div>
+          </div>
+          <div class="chart">
+            <div class="bar-wrap">
+              <div class="bar-stack">
+                <div class="seg-s" style="height:10%"></div>
+                <div class="seg-u" style="height:6%"></div>
+                <div class="seg-p" style="height:28%"></div>
+              </div>
+              <div class="day">월</div>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar-stack">
+                <div class="seg-s" style="height:14%"></div>
+                <div class="seg-u" style="height:4%"></div>
+                <div class="seg-p" style="height:22%"></div>
+              </div>
+              <div class="day">화</div>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar-stack">
+                <div class="seg-s" style="height:6%"></div>
+                <div class="seg-u" style="height:0%"></div>
+                <div class="seg-p" style="height:40%"></div>
+              </div>
+              <div class="day">수</div>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar-stack">
+                <div class="seg-s" style="height:16%"></div>
+                <div class="seg-u" style="height:10%"></div>
+                <div class="seg-p" style="height:34%"></div>
+              </div>
+              <div class="day">목</div>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar-stack">
+                <div class="seg-s" style="height:8%"></div>
+                <div class="seg-u" style="height:0%"></div>
+                <div class="seg-p" style="height:18%"></div>
+              </div>
+              <div class="day">금</div>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar-stack">
+                <div class="seg-s" style="height:20%"></div>
+                <div class="seg-u" style="height:14%"></div>
+                <div class="seg-p" style="height:46%"></div>
+              </div>
+              <div class="day">토</div>
+            </div>
+            <div class="bar-wrap">
+              <div class="bar-stack">
+                <div class="seg-s" style="height:6%"></div>
+                <div class="seg-u" style="height:0%"></div>
+                <div class="seg-p" style="height:24%"></div>
+              </div>
+              <div class="day today">오늘</div>
+            </div>
+          </div>
+          <div class="key">
+            <span class="kk"><span class="sw" style="background:#0d9488"></span>푸시업</span>
+            <span class="kk"><span class="sw" style="background:#14b8a6"></span>풀업</span>
+            <span class="kk"><span class="sw" style="background:#5eead4"></span>스쿼트</span>
+          </div>
+        </div>
+      </div></div>
+      <figcaption>
+        <strong>④ 주간 통계</strong>
+        세그먼트 탭(일/주/월/년) · 7일 스택 바 · 세 운동을 한 컬러 스케일로 묶어 "비교가 아닌 기록"으로 읽히게
+      </figcaption>
+    </figure>
+
+  </section>
+
+  <footer class="page">
+    <strong>검토 체크리스트</strong>
+    — ① 숫자 크기(128pt)가 과하진 않은지 · ② 운동 선택 행의 "오늘 n개"가 비교 유발로 느껴지진 않는지 · ③ 평생 누적의 dashed 박스가 여백감과 어울리는지 · ④ 스택 바 색 3단계(teal 600/500/300)가 서로 구분되는지.
+    <br><br>
+    <strong>다음 단계</strong> — 현태님 피드백 후 수정 → Phase 1 Xcode 진입 시 이 시안을 SwiftUI로 이식. 위젯/잠금화면/watchOS 화면은 실기 검증이 필요해 Phase 1 후반에서 별도 프로토타입.
+  </footer>
+</body>
+</html>

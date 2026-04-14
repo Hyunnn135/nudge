@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="Nudge icon concept B — +1 Badge">
+  <title>Nudge — +1 Badge</title>
+  <defs>
+    <linearGradient id="bgB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#0d9488"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="200" ry="200" fill="url(#bgB)"/>
+  <g fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Rounded', 'SF Pro', system-ui, sans-serif" font-weight="800" text-anchor="middle">
+    <text x="512" y="640" font-size="560" letter-spacing="-28">+1</text>
+  </g>
+</svg>
