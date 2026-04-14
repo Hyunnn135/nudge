@@ -111,6 +111,7 @@
 
 | 항목 | 경로 |
 |-----|------|
+| GitHub 저장소 | https://github.com/Hyunnn135/nudge.git |
 | 마스터 규칙 | `~/Desktop/Projects/WORKFLOW_RULES.md` |
 | 앱 기획안 | `~/Desktop/Projects/nudge/APP_PLAN.md` |
 | 컨텍스트 (Claude용) | `~/Desktop/Projects/nudge/PROJECT_CONTEXT.md` |
