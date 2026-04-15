@@ -1,6 +1,6 @@
 # 🫱 Nudge (넛지) 앱 프로젝트 마스터보드
 
-> 마지막 업데이트: 2026-04-14
+> 마지막 업데이트: 2026-04-15 (Phase 1 핵심 구현 완료)
 
 ---
 
@@ -13,7 +13,7 @@
 | 운동 종목 | 푸시업, 풀업, 스쿼트 (3개 고정) |
 | 기술 스택 | SwiftUI + WidgetKit + App Intents + SwiftData + CloudKit |
 | 플랫폼 | iOS 17+ / watchOS |
-| 현재 단계 | Phase 0 — 기획 완료, 개발 준비 중 |
+| 현재 단계 | Phase 1 — 핵심 구현 완료 (빌드/실기 검증 진행) |
 | 예상 기간 | 4~5주 |
 | 시작일 | 2026-04-14 |
 
@@ -30,18 +30,22 @@
 - [x] devlog 작성
 - [x] 아이콘 & 컬러 컨셉 스케치 (`DESIGN.md` + `icon-concepts/` 4종 SVG + preview.html, A안 가결정)
 
-### Phase 1: 기초 (예상 1주) — ⬜ 대기
-- [ ] Xcode 프로젝트 셋업 (iOS 앱 + Widget Extension + watchOS 앱 타겟)
-- [ ] App Group 설정 (앱 ↔ 위젯 데이터 공유)
-- [ ] SwiftData 모델 정의 (Exercise 열거형 또는 모델, TapRecord)
-- [ ] 활성 운동 선택 화면 (iOS)
-- [ ] 기본 카운터 화면 (iOS, +1 / -1 취소)
+### Phase 1: 기초 (예상 1주) — 🟡 구현 완료 / 검증 중
+- [x] Xcode 프로젝트 셋업 (iOS 앱 + Widget Extension + watchOS 앱 타겟)
+- [x] Watch 타겟 임시 제외 (iOS nudge 타겟의 Embed Watch Content / 의존성 제거 — Phase 3에서 재활성화)
+- [x] App Group 설정 (`group.site.salarykorea.nudge`, iOS + 위젯 entitlements 양쪽)
+- [x] Exercise 모델 + SharedStore (App Group UserDefaults 기반, 앱↔위젯 공유)
+- [x] 활성 운동 선택 화면 (iOS, 세그먼트 Picker)
+- [x] 기본 카운터 화면 (iOS, +1 / -1 취소, 햅틱)
+- [ ] 시뮬레이터에서 동작 검증 (+1 / 운동 전환 / 앱 재진입 시 동기화)
 
-### Phase 2: 위젯 (예상 1~1.5주) — ⬜ 대기
-- [ ] Widget Extension 뼈대
-- [ ] 소형/중형 위젯 디자인
-- [ ] App Intents로 탭 → +1 구현 (Interactive Widget)
-- [ ] 위젯 타임라인 갱신 로직 (WidgetCenter.shared.reloadAllTimelines)
+### Phase 2: 위젯 (예상 1~1.5주) — 🟡 뼈대 완료 / 검증 중
+- [x] Widget Extension 뼈대 (StaticConfiguration 으로 전환)
+- [x] 소형(활성 운동 1개) / 중형(3개 병렬) 위젯 디자인
+- [x] App Intents (IncrementExerciseIntent / SetActiveExerciseIntent) — 탭으로 +1
+- [x] 자정 리셋 예약 (Timeline policy .after(nextMidnight))
+- [x] 카운터 변경 시 WidgetCenter.shared.reloadAllTimelines 호출
+- [ ] 홈 화면 위젯 실기 검증 (탭 후 숫자 반영 지연)
 - [ ] 잠금 화면 위젯 검증
 
 ### Phase 3: Apple Watch (예상 1주) — ⬜ 대기
@@ -72,7 +76,10 @@
 | 2026-04-14 | DESIGN.md 작성 + 아이콘 컨셉 4종(SVG) + preview.html. Teal 팔레트 확정, A안(Ripple Tap) 가결정 |
 | 2026-04-14 | 핵심 4화면 HTML 시안 작성 (`mockups/screens.html`): 메인 카운터·운동 선택·일간 통계·주간 통계 |
 | 2026-04-14 | 시안 확정 + 운동 아이콘 emoji→SVG 라인아트로 교체(푸시업·풀업·스쿼트) |
-| 2026-04-14 | 수익화 로드맵 `MONETIZATION.md` 작성 — v1.0 무광고, v1.1 IAP, v1.2 interstitial |
+| 2026-04-14 | 수익화 로드맵 `MONETIZATION.md` v1 작성 — v1.0 무광고, v1.1 IAP, v1.2 interstitial (v2에서 기각) |
+| 2026-04-15 | `MONETIZATION.md` v2 전면 개정 — 완전 무료 + $0.99 커피값 팁 1종. 본격 수익화는 맥스아웃 구독제로. 광고·구독·기능 잠금 전부 제거 |
+| 2026-04-15 | Xcode DerivedData 디스크 풀 이슈 해결 + 시뮬레이터 기본 빌드 확인 |
+| 2026-04-15 | Phase 1 핵심 구현: Watch 타겟 iOS 빌드에서 임시 분리, App Group 양쪽 설정, `Exercise` enum + `SharedStore` (UserDefaults 기반 앱↔위젯 공용), 메인 `ContentView` (Picker + 카운터 + 큰 +1 / -1 취소), 위젯 `StaticConfiguration` + 소형/중형 레이아웃 + `IncrementExerciseIntent` 로 탭=+1 구현 |
 
 ---
 
