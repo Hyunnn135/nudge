@@ -10,6 +10,7 @@
 		403A9E832F8F2026008F0938 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 403A9E822F8F2025008F0938 /* WidgetKit.framework */; };
 		403A9E852F8F2026008F0938 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 403A9E842F8F2026008F0938 /* SwiftUI.framework */; };
 		403A9E922F8F2029008F0938 /* NudgeWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 403A9E802F8F2025008F0938 /* NudgeWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		403A9EBC2F8F2141008F0938 /* NudgeWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 403A9E9C2F8F213E008F0938 /* NudgeWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +49,13 @@
 			remoteGlobalIDString = 403A9E9B2F8F213E008F0938;
 			remoteInfo = "NudgeWatch Watch App";
 		};
+		403A9EBA2F8F2141008F0938 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 403A9E452F8F1D87008F0938 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 403A9E9B2F8F213E008F0938;
+			remoteInfo = "NudgeWatch Watch App";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -60,6 +68,17 @@
 				403A9E922F8F2029008F0938 /* NudgeWidgetExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		403A9EC02F8F2141008F0938 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				403A9EBC2F8F2141008F0938 /* NudgeWatch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -241,11 +260,13 @@
 				403A9E4A2F8F1D87008F0938 /* Frameworks */,
 				403A9E4B2F8F1D87008F0938 /* Resources */,
 				403A9E972F8F2029008F0938 /* Embed Foundation Extensions */,
+				403A9EC02F8F2141008F0938 /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				403A9E912F8F2029008F0938 /* PBXTargetDependency */,
+				403A9EBB2F8F2141008F0938 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				403A9E4F2F8F1D87008F0938 /* nudge */,
@@ -584,6 +605,11 @@
 			isa = PBXTargetDependency;
 			target = 403A9E9B2F8F213E008F0938 /* NudgeWatch Watch App */;
 			targetProxy = 403A9EB32F8F2141008F0938 /* PBXContainerItemProxy */;
+		};
+		403A9EBB2F8F2141008F0938 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 403A9E9B2F8F213E008F0938 /* NudgeWatch Watch App */;
+			targetProxy = 403A9EBA2F8F2141008F0938 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -928,6 +954,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "NudgeWatch Watch App/NudgeWatch.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 7YL733Y4S3;
@@ -961,6 +988,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "NudgeWatch Watch App/NudgeWatch.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 7YL733Y4S3;

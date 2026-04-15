@@ -56,6 +56,7 @@ enum SharedStore {
 
     private static let activeExerciseKey = "activeExercise"
     private static let countsKey = "dailyCounts"
+    private static let lastModifiedKey = "lastModified"
 
     private static var defaults: UserDefaults {
         UserDefaults(suiteName: appGroupID) ?? .standard
@@ -70,7 +71,20 @@ enum SharedStore {
         }
         set {
             defaults.set(newValue.rawValue, forKey: activeExerciseKey)
+            touch()
         }
+    }
+
+    // MARK: Last modified (WatchConnectivity sync 용 last-writer-wins 타임스탬프)
+
+    static var lastModified: TimeInterval {
+        get { defaults.double(forKey: lastModifiedKey) }
+        set { defaults.set(newValue, forKey: lastModifiedKey) }
+    }
+
+    /// 데이터 변경 시 호출. 현재 시각으로 타임스탬프 갱신.
+    static func touch(_ date: Date = Date()) {
+        lastModified = date.timeIntervalSince1970
     }
 
     // MARK: Daily counts
@@ -109,6 +123,7 @@ enum SharedStore {
         day[exercise.rawValue] = next
         counts[key] = day
         allCounts = counts
+        touch()
         return next
     }
 
@@ -121,7 +136,53 @@ enum SharedStore {
         day[exercise.rawValue] = next
         counts[key] = day
         allCounts = counts
+        touch()
         return next
+    }
+
+    // MARK: Sync (WatchConnectivity payload 형태)
+
+    /// WC 전송용 스냅샷. 전체 history 가 아니라 최근 60 일만 포함 (payload 크기 ↓).
+    static func syncSnapshot(daysBack: Int = 60) -> [String: Any] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let cutoff = cal.date(byAdding: .day, value: -daysBack, to: today)
+        var trimmed: [String: [String: Int]] = [:]
+        for (k, v) in allCounts {
+            if let cut = cutoff {
+                let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; f.timeZone = .current
+                if let d = f.date(from: k), d >= cut { trimmed[k] = v }
+            } else {
+                trimmed[k] = v
+            }
+        }
+        return [
+            "activeExercise": activeExercise.rawValue,
+            "counts": trimmed,
+            "lastModified": lastModified
+        ]
+    }
+
+    /// WC 수신 시 병합. 원격 lastModified 가 로컬보다 최신이면 overwrite.
+    /// `true` 반환 시 UI 갱신 필요.
+    @discardableResult
+    static func applyRemoteSnapshot(_ payload: [String: Any]) -> Bool {
+        guard let remoteModified = payload["lastModified"] as? TimeInterval else { return false }
+        // 같거나 과거면 무시
+        guard remoteModified > lastModified else { return false }
+
+        if let activeRaw = payload["activeExercise"] as? String,
+           let ex = Exercise(rawValue: activeRaw) {
+            defaults.set(ex.rawValue, forKey: activeExerciseKey)
+        }
+        if let remoteCounts = payload["counts"] as? [String: [String: Int]] {
+            // 최근 60일 치만 덮어쓰고, 원격이 보내지 않은 오래된 기록은 보존
+            var merged = allCounts
+            for (k, v) in remoteCounts { merged[k] = v }
+            allCounts = merged
+        }
+        lastModified = remoteModified
+        return true
     }
 
     static func todayTotal() -> Int {

@@ -1,6 +1,6 @@
 # 🫱 Nudge (넛지) 앱 프로젝트 마스터보드
 
-> 마지막 업데이트: 2026-04-15 (위젯 설정 UI + 아이콘 A안 + Phase 4 통계 화면 구현)
+> 마지막 업데이트: 2026-04-15 (Phase 3 시작 — Watch 타겟 복원 + WC 동기화 + Watch 메인 화면)
 
 ---
 
@@ -48,10 +48,15 @@
 - [x] 홈 화면 위젯 실기 검증 (탭 후 숫자 반영 확인 — 시뮬레이터)
 - [ ] 잠금 화면 위젯 검증 (실기기 필요)
 
-### Phase 3: Apple Watch (예상 1주) — ⬜ 대기
-- [ ] watchOS 앱 기본 화면 (+1 큰 버튼)
-- [ ] 컴플리케이션 (워치페이스에 활성 운동 + 오늘 횟수)
-- [ ] 워치 ↔ iPhone 동기화 검증 (CloudKit 단독 vs WatchConnectivity 필요성 판단)
+### Phase 3: Apple Watch (예상 1주) — 🟡 메인 앱 + WC 동기화 구현 (컴플리케이션은 다음 세션)
+- [x] Watch 타겟 pbxproj 복원 (Embed Watch Content + Dependency 재삽입) + Watch entitlements 파일 생성 & 앱 그룹 연결
+- [x] 동기화 전략 결정: **WatchConnectivity 단독** (last-writer-wins, `SharedStore.lastModified` 타임스탬프 비교)
+- [x] `SharedStore` 확장: `lastModified`, `touch()`, `syncSnapshot(daysBack:)`, `applyRemoteSnapshot(_:)` (최근 60일만 payload)
+- [x] `NudgeSync` WC 레이어 (iOS + Watch 동일 코드 복제) — `WCSessionDelegate`, `updateApplicationContext` 기반
+- [x] iOS 측 hook: +1 / −1 / 세그먼트 전환 / 앱 foreground 복귀 / 원격 수신 시 UI 갱신
+- [x] watchOS 메인 화면 (+1 큰 버튼, 활성 운동 표시는 iPhone 설정값 읽기만)
+- [ ] 컴플리케이션 (circularSmall) — **별도 Widget Extension 타겟 필요 → Xcode UI 로 추가 (다음 세션)**
+- [ ] 실기기에서 iPhone ↔ Watch 양방향 동기화 검증 (시뮬로는 WC 제한 있음)
 
 ### Phase 4: 통계 & 마무리 (예상 1주) — 🟡 통계 화면 구현 완료
 - [x] `RootView` TabView (오늘 / 통계)
@@ -86,6 +91,7 @@
 | 2026-04-15 | 위젯 설정 UI 추가: `ExerciseChoice: AppEnum` + `NudgeSingleConfigIntent: WidgetConfigurationIntent`. 소형 위젯 = `AppIntentConfiguration`(꾹 눌러 편집으로 운동 선택), 중형 위젯 = `StaticConfiguration` 유지, Bundle에 둘 다 등록 |
 | 2026-04-15 | 앱 아이콘 A안(Ripple Tap) 1024 PNG 3종(light/dark/tinted) 생성 + `AppIcon.appiconset/Contents.json` 파일명 연결. 알파 제거 후 RGB 저장 |
 | 2026-04-15 | Phase 4 통계 화면 구현: `SharedStore`에 `recentDays(_:)` / `counts(on:)` / `recordedDateRange()` 추가. `StatsView` (주/월/연 스택 바 차트 + 최근 12주 히트맵 + 합계/운동별 카드). `RootView` TabView로 오늘/통계 분리 |
+| 2026-04-15 | Phase 3 시작 — Watch 타겟 복원(Embed Watch Content + Dependency 재삽입), `NudgeWatch.entitlements` 생성 & 앱 그룹 연결, `SharedStore` 에 `lastModified` + `syncSnapshot/applyRemoteSnapshot` 추가, `NudgeSync` WC 레이어 (iOS + Watch 동일 코드), Watch 메인 앱 재작성(+1 큰 버튼, iPhone 활성 운동 읽기). 컴플리케이션은 Widget Extension 타겟 신규 추가 필요로 다음 세션 |
 
 ---
 
@@ -107,16 +113,17 @@
 
 ## 🐛 알려진 이슈 & 해결 필요 사항
 
-(현재 없음 — 개발 시작 후 업데이트)
+- [ ] **운동 아이콘 교체 (낮은 우선순위, 추후)** — 현재 SF Symbols(`figure.strengthtraining.traditional`·`figure.pilates`·`figure.cross.training`) 톤이 마음에 안 듦. `Exercise.symbolName` 한 곳 수정 = 앱·위젯·통계 전부 동시 반영. 커스텀 SVG → SF Symbols import(.sfsymbols) 또는 다른 SF Symbol 탐색.
 
 ---
 
 ## 📌 기술 리스크 체크리스트 (개발 시작 전 검증 필요)
 
-- [ ] iOS 17 Interactive Widget이 홈 화면·잠금 화면 모두에서 탭 인터랙션 지원하는지 실기 확인
-- [ ] App Group + SwiftData 공유가 문제없이 동작하는지 간단한 프로토타입으로 검증
-- [ ] CloudKit만으로 iPhone ↔ Watch 즉시 동기화가 되는지, 지연이 있으면 WatchConnectivity 필요한지 판단
-- [ ] 위젯 탭 직후 숫자 업데이트 반영 지연이 얼마나 되는지 (reloadAllTimelines 타이밍)
+- [x] iOS 17 Interactive Widget이 홈 화면에서 탭 인터랙션 지원하는지 (시뮬에서 확인)
+- [ ] 잠금 화면 위젯 탭 동작 (실기기 필요)
+- [x] App Group + UserDefaults JSON 공유 정상 동작 (Phase 1 검증 완료)
+- [x] 동기화 전략 결정: **WatchConnectivity 단독 (CloudKit 배제)** — last-writer-wins
+- [ ] 실기기에서 iPhone ↔ Watch 양방향 WC 동기화 실측 (시뮬에서는 WC 전송 제약 있음)
 
 ---
 

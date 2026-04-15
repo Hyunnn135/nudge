@@ -33,9 +33,16 @@ struct ContentView: View {
             SharedStore.activeExercise = newValue
             refresh()
             WidgetCenter.shared.reloadAllTimelines()
+            NudgeSync.shared.pushLocalChange()
         }
         // 앱이 다시 활성화될 때 (위젯에서 탭 후 앱 열었을 경우 등) 값 동기화
+        // + 위젯 extension 에서 찍힌 값도 여기서 Watch 로 한번 push.
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            refresh()
+            NudgeSync.shared.pushLocalChange()
+        }
+        // Watch 에서 원격 동기화로 값이 바뀌었을 때 UI 갱신
+        .onReceive(NotificationCenter.default.publisher(for: .nudgeDataChangedRemote)) { _ in
             refresh()
         }
     }
@@ -89,6 +96,7 @@ struct ContentView: View {
             count = new
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             WidgetCenter.shared.reloadAllTimelines()
+            NudgeSync.shared.pushLocalChange()
         } label: {
             Text("+1")
                 .font(.system(size: 40, weight: .heavy, design: .rounded))
@@ -107,6 +115,7 @@ struct ContentView: View {
             count = new
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             WidgetCenter.shared.reloadAllTimelines()
+            NudgeSync.shared.pushLocalChange()
         } label: {
             Text("−1 취소")
                 .font(.callout.weight(.medium))
