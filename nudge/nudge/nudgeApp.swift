@@ -9,7 +9,7 @@ import SwiftUI
 struct nudgeApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
     }
 }

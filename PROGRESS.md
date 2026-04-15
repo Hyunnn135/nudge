@@ -1,6 +1,6 @@
 # 🫱 Nudge (넛지) 앱 프로젝트 마스터보드
 
-> 마지막 업데이트: 2026-04-15 (Phase 1 핵심 구현 완료)
+> 마지막 업데이트: 2026-04-15 (위젯 설정 UI + 아이콘 A안 + Phase 4 통계 화면 구현)
 
 ---
 
@@ -39,26 +39,29 @@
 - [x] 기본 카운터 화면 (iOS, +1 / -1 취소, 햅틱)
 - [ ] 시뮬레이터에서 동작 검증 (+1 / 운동 전환 / 앱 재진입 시 동기화)
 
-### Phase 2: 위젯 (예상 1~1.5주) — 🟡 뼈대 완료 / 검증 중
-- [x] Widget Extension 뼈대 (StaticConfiguration 으로 전환)
-- [x] 소형(활성 운동 1개) / 중형(3개 병렬) 위젯 디자인
-- [x] App Intents (IncrementExerciseIntent / SetActiveExerciseIntent) — 탭으로 +1
+### Phase 2: 위젯 (예상 1~1.5주) — 🟢 완료
+- [x] Widget Extension 뼈대 (Single = AppIntentConfiguration, Tri = StaticConfiguration)
+- [x] 소형(활성 운동 1개 / 꾹 눌러 편집으로 운동 변경) / 중형(3개 병렬) 위젯 분리
+- [x] App Intents: `IncrementExerciseIntent`(탭=+1) + `NudgeSingleConfigIntent`(위젯 설정 UI) + `ExerciseChoice` AppEnum
 - [x] 자정 리셋 예약 (Timeline policy .after(nextMidnight))
 - [x] 카운터 변경 시 WidgetCenter.shared.reloadAllTimelines 호출
-- [ ] 홈 화면 위젯 실기 검증 (탭 후 숫자 반영 지연)
-- [ ] 잠금 화면 위젯 검증
+- [x] 홈 화면 위젯 실기 검증 (탭 후 숫자 반영 확인 — 시뮬레이터)
+- [ ] 잠금 화면 위젯 검증 (실기기 필요)
 
 ### Phase 3: Apple Watch (예상 1주) — ⬜ 대기
 - [ ] watchOS 앱 기본 화면 (+1 큰 버튼)
 - [ ] 컴플리케이션 (워치페이스에 활성 운동 + 오늘 횟수)
 - [ ] 워치 ↔ iPhone 동기화 검증 (CloudKit 단독 vs WatchConnectivity 필요성 판단)
 
-### Phase 4: 통계 & 마무리 (예상 1주) — ⬜ 대기
-- [ ] 일간 통계 화면
-- [ ] 주간 통계 (Swift Charts 스택 바)
-- [ ] 월간 통계 (히트맵)
-- [ ] 연간 통계 + 평생 누적
-- [ ] 폴리싱: 햅틱, 카운트업 애니메이션, 빈 상태 화면
+### Phase 4: 통계 & 마무리 (예상 1주) — 🟡 통계 화면 구현 완료
+- [x] `RootView` TabView (오늘 / 통계)
+- [x] `SharedStore`에 history helper 확장 (`recentDays(_:)`, `counts(on:)`)
+- [x] 주간(7일) / 월간(4주) / 연간(12개월) 스택 바 차트 (Swift Charts, 운동별 색 매핑)
+- [x] 최근 12주 히트맵 (주간 탭 한정, 월요일 시작 7행 × 12열, 5단계 민트)
+- [x] 기간 합계 / 운동별 합계 카드
+- [x] 빈 상태 메시지 ("기록이 없어요")
+- [x] 앱 아이콘 A안(Ripple Tap) 적용 — light/dark/tinted 3종 1024 PNG
+- [ ] 햅틱 실기 확인 (실기기 필요)
 - [ ] App Store 메타데이터 준비 (설명, 스크린샷, 키워드)
 - [ ] TestFlight 배포
 
@@ -80,6 +83,9 @@
 | 2026-04-15 | `MONETIZATION.md` v2 전면 개정 — 완전 무료 + $0.99 커피값 팁 1종. 본격 수익화는 맥스아웃 구독제로. 광고·구독·기능 잠금 전부 제거 |
 | 2026-04-15 | Xcode DerivedData 디스크 풀 이슈 해결 + 시뮬레이터 기본 빌드 확인 |
 | 2026-04-15 | Phase 1 핵심 구현: Watch 타겟 iOS 빌드에서 임시 분리, App Group 양쪽 설정, `Exercise` enum + `SharedStore` (UserDefaults 기반 앱↔위젯 공용), 메인 `ContentView` (Picker + 카운터 + 큰 +1 / -1 취소), 위젯 `StaticConfiguration` + 소형/중형 레이아웃 + `IncrementExerciseIntent` 로 탭=+1 구현 |
+| 2026-04-15 | 위젯 설정 UI 추가: `ExerciseChoice: AppEnum` + `NudgeSingleConfigIntent: WidgetConfigurationIntent`. 소형 위젯 = `AppIntentConfiguration`(꾹 눌러 편집으로 운동 선택), 중형 위젯 = `StaticConfiguration` 유지, Bundle에 둘 다 등록 |
+| 2026-04-15 | 앱 아이콘 A안(Ripple Tap) 1024 PNG 3종(light/dark/tinted) 생성 + `AppIcon.appiconset/Contents.json` 파일명 연결. 알파 제거 후 RGB 저장 |
+| 2026-04-15 | Phase 4 통계 화면 구현: `SharedStore`에 `recentDays(_:)` / `counts(on:)` / `recordedDateRange()` 추가. `StatsView` (주/월/연 스택 바 차트 + 최근 12주 히트맵 + 합계/운동별 카드). `RootView` TabView로 오늘/통계 분리 |
 
 ---
 

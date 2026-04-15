@@ -2,28 +2,67 @@
 //  NudgeWidget.swift
 //  NudgeWidget
 //
-//  Nudge 위젯 — 3개 운동(푸시업/풀업/스쿼트) 버튼 탭으로 +1.
+//  두 종류의 위젯:
+//  - NudgeSingleWidget : 소형, 구성 가능(운동 선택). 전체 탭 = 해당 운동 +1
+//  - NudgeTriWidget    : 중형, 구성 없음. 3개 운동 카드 각각 탭 = +1
 //
 
 import WidgetKit
 import SwiftUI
 import AppIntents
 
-// MARK: - Timeline
+// MARK: - Timeline Entry
 
 struct NudgeEntry: TimelineEntry {
     let date: Date
     let counts: [Exercise: Int]
-    let activeExercise: Exercise
+    let exercise: Exercise // 소형 위젯에서 보여줄 운동 (중형에서는 무시)
 
     static let placeholder = NudgeEntry(
         date: Date(),
         counts: [.pushup: 12, .pullup: 4, .squat: 20],
-        activeExercise: .pushup
+        exercise: .pushup
     )
 }
 
-struct NudgeProvider: TimelineProvider {
+// MARK: - Helpers
+
+private func currentCounts(at date: Date = Date()) -> [Exercise: Int] {
+    Exercise.allCases.reduce(into: [:]) { acc, ex in
+        acc[ex] = SharedStore.count(for: ex, on: date)
+    }
+}
+
+private func nextMidnight(from date: Date = Date()) -> Date {
+    Calendar.current.nextDate(
+        after: date,
+        matching: DateComponents(hour: 0, minute: 0, second: 0),
+        matchingPolicy: .nextTime
+    ) ?? date.addingTimeInterval(60 * 60)
+}
+
+// MARK: - Providers
+
+/// 소형 위젯 Provider — Intent 로 사용자가 선택한 운동을 받음.
+struct NudgeSingleProvider: AppIntentTimelineProvider {
+    func placeholder(in context: Context) -> NudgeEntry { .placeholder }
+
+    func snapshot(for configuration: NudgeSingleConfigIntent, in context: Context) async -> NudgeEntry {
+        entry(for: configuration.exercise.exercise)
+    }
+
+    func timeline(for configuration: NudgeSingleConfigIntent, in context: Context) async -> Timeline<NudgeEntry> {
+        let e = entry(for: configuration.exercise.exercise)
+        return Timeline(entries: [e], policy: .after(nextMidnight()))
+    }
+
+    private func entry(for ex: Exercise) -> NudgeEntry {
+        NudgeEntry(date: Date(), counts: currentCounts(), exercise: ex)
+    }
+}
+
+/// 중형 위젯 Provider — 구성 없음. 3종 모두 표시.
+struct NudgeTriProvider: TimelineProvider {
     func placeholder(in context: Context) -> NudgeEntry { .placeholder }
 
     func getSnapshot(in context: Context, completion: @escaping (NudgeEntry) -> Void) {
@@ -31,65 +70,47 @@ struct NudgeProvider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<NudgeEntry>) -> Void) {
-        // 현재 값 기반 엔트리 + 자정 리셋을 위해 다음 자정에 리프레시 예약.
-        let now = Date()
-        let entry = currentEntry(at: now)
-
-        let calendar = Calendar.current
-        let nextMidnight = calendar.nextDate(
-            after: now,
-            matching: DateComponents(hour: 0, minute: 0, second: 0),
-            matchingPolicy: .nextTime
-        ) ?? now.addingTimeInterval(60 * 60)
-
-        completion(Timeline(entries: [entry], policy: .after(nextMidnight)))
+        completion(Timeline(entries: [currentEntry()], policy: .after(nextMidnight())))
     }
 
-    private func currentEntry(at date: Date = Date()) -> NudgeEntry {
-        let counts: [Exercise: Int] = Exercise.allCases.reduce(into: [:]) { acc, ex in
-            acc[ex] = SharedStore.count(for: ex, on: date)
-        }
-        return NudgeEntry(
-            date: date,
-            counts: counts,
-            activeExercise: SharedStore.activeExercise
-        )
+    private func currentEntry() -> NudgeEntry {
+        NudgeEntry(date: Date(), counts: currentCounts(), exercise: .pushup)
     }
 }
 
 // MARK: - Views
 
-/// 소형 위젯 — 활성 운동 1개만 크게 보여주고 탭 영역 전체가 +1.
-struct NudgeSmallView: View {
+/// 소형 위젯 — 1개 운동 크게, 위젯 전체 탭 = +1.
+struct NudgeSingleView: View {
     let entry: NudgeEntry
 
-    private var activeCount: Int { entry.counts[entry.activeExercise] ?? 0 }
+    private var count: Int { entry.counts[entry.exercise] ?? 0 }
 
     var body: some View {
-        Button(intent: IncrementExerciseIntent(exercise: entry.activeExercise)) {
+        Button(intent: IncrementExerciseIntent(exercise: entry.exercise)) {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Image(systemName: entry.activeExercise.symbolName)
+                    Image(systemName: entry.exercise.symbolName)
                         .font(.title3)
-                        .foregroundStyle(entry.activeExercise.accentColor)
+                        .foregroundStyle(entry.exercise.accentColor)
                     Spacer()
                     Text("+1")
                         .font(.caption.weight(.bold))
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
-                        .background(entry.activeExercise.accentColor.opacity(0.15))
-                        .foregroundStyle(entry.activeExercise.accentColor)
+                        .background(entry.exercise.accentColor.opacity(0.15))
+                        .foregroundStyle(entry.exercise.accentColor)
                         .clipShape(Capsule())
                 }
 
                 Spacer()
 
-                Text("\(activeCount)")
+                Text("\(count)")
                     .font(.system(size: 44, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(.primary)
 
-                Text(entry.activeExercise.displayName)
+                Text(entry.exercise.displayName)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
@@ -99,8 +120,8 @@ struct NudgeSmallView: View {
     }
 }
 
-/// 중형 위젯 — 3개 운동 모두 표시. 각 카드 탭 = 해당 운동 +1.
-struct NudgeMediumView: View {
+/// 중형 위젯 — 3개 운동 카드 병렬. 각 카드 탭 = 해당 운동 +1.
+struct NudgeTriView: View {
     let entry: NudgeEntry
 
     var body: some View {
@@ -131,46 +152,51 @@ struct NudgeMediumView: View {
     }
 }
 
-struct NudgeWidgetEntryView: View {
-    @Environment(\.widgetFamily) var family
-    var entry: NudgeEntry
+// MARK: - Widgets
 
-    var body: some View {
-        switch family {
-        case .systemSmall:
-            NudgeSmallView(entry: entry)
-        default:
-            NudgeMediumView(entry: entry)
-        }
-    }
-}
-
-// MARK: - Widget
-
-struct NudgeWidget: Widget {
-    let kind: String = "NudgeWidget"
+struct NudgeSingleWidget: Widget {
+    let kind: String = "NudgeSingleWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: NudgeProvider()) { entry in
-            NudgeWidgetEntryView(entry: entry)
+        AppIntentConfiguration(
+            kind: kind,
+            intent: NudgeSingleConfigIntent.self,
+            provider: NudgeSingleProvider()
+        ) { entry in
+            NudgeSingleView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("Nudge")
-        .description("탭 한 번으로 오늘의 운동 1회 기록.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .description("운동 1종 — 탭 한 번으로 +1. 꾹 눌러 운동 변경.")
+        .supportedFamilies([.systemSmall])
     }
 }
 
-// MARK: - Preview
+struct NudgeTriWidget: Widget {
+    let kind: String = "NudgeTriWidget"
 
-#Preview(as: .systemSmall) {
-    NudgeWidget()
-} timeline: {
-    NudgeEntry.placeholder
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: NudgeTriProvider()) { entry in
+            NudgeTriView(entry: entry)
+                .containerBackground(.fill.tertiary, for: .widget)
+        }
+        .configurationDisplayName("Nudge 3종")
+        .description("푸시업 · 풀업 · 스쿼트 — 각 버튼 탭 = +1.")
+        .supportedFamilies([.systemMedium])
+    }
 }
 
-#Preview(as: .systemMedium) {
-    NudgeWidget()
+// MARK: - Previews
+
+#Preview("Single (small)", as: .systemSmall) {
+    NudgeSingleWidget()
+} timeline: {
+    NudgeEntry.placeholder
+    NudgeEntry(date: Date(), counts: [.pushup: 25, .pullup: 8, .squat: 40], exercise: .pullup)
+}
+
+#Preview("Tri (medium)", as: .systemMedium) {
+    NudgeTriWidget()
 } timeline: {
     NudgeEntry.placeholder
 }

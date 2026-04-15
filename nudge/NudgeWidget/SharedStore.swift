@@ -1,10 +1,10 @@
 //
 //  SharedStore.swift
-//  NudgeWidget
+//  nudge
 //
 //  앱 ↔ 위젯 공용 데이터 저장소 (App Group UserDefaults 기반)
 //
-//  ⚠️ 이 파일은 nudge/SharedStore.swift 와 내용이 동일해야 합니다.
+//  ⚠️ 이 파일은 NudgeWidget/SharedStore.swift 와 내용이 동일해야 합니다.
 //     한 쪽 수정 시 다른 쪽도 반드시 같이 수정하세요.
 //
 
@@ -127,5 +127,36 @@ enum SharedStore {
     static func todayTotal() -> Int {
         let day = allCounts[dateKey()] ?? [:]
         return day.values.reduce(0, +)
+    }
+
+    // MARK: History (Phase 4 — stats)
+
+    /// 날짜 하루의 운동별 카운트 dict 반환.
+    static func counts(on date: Date) -> [Exercise: Int] {
+        let day = allCounts[dateKey(for: date)] ?? [:]
+        var out: [Exercise: Int] = [:]
+        for ex in Exercise.allCases {
+            out[ex] = day[ex.rawValue] ?? 0
+        }
+        return out
+    }
+
+    /// 최근 `days` 일 (오늘 포함, 오래된 → 최신 순) 배열.
+    static func recentDays(_ days: Int) -> [(date: Date, counts: [Exercise: Int])] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        return (0..<days).reversed().compactMap { offset in
+            guard let d = cal.date(byAdding: .day, value: -offset, to: today) else { return nil }
+            return (d, counts(on: d))
+        }
+    }
+
+    /// 전체 기록된 날짜 범위 (가장 오래된 날짜, 가장 최신 날짜). 기록 없으면 nil.
+    static func recordedDateRange() -> (oldest: Date, newest: Date)? {
+        let keys = allCounts.keys.sorted()
+        guard let first = keys.first, let last = keys.last else { return nil }
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; f.timeZone = .current
+        guard let o = f.date(from: first), let n = f.date(from: last) else { return nil }
+        return (o, n)
     }
 }
