@@ -11,6 +11,8 @@
 //
 
 import Foundation
+import Combine  // ObservableObject 프로토콜 (SwiftUI/Combine 양쪽에서 노출)
+
 #if canImport(WatchConnectivity)
 import WatchConnectivity
 #endif

@@ -254,26 +254,60 @@ struct StatsView: View {
     }
 
     private var heatmapCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("최근 12주")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("일일 활동 히트맵")
+                    .font(.headline)
+                Spacer()
+                Text(heatmapDateRangeLabel)
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+            Text("왼쪽→오른쪽 = 과거→오늘 · 진할수록 많이 운동한 날 · 셀을 탭하면 상세")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .fixedSize(horizontal: false, vertical: true)
+
             Heatmap()
-                .frame(height: 140)
+                .padding(.top, 4)
+
             HStack(spacing: 6) {
                 Text("적음").font(.caption2).foregroundStyle(.secondary)
                 ForEach(0..<5) { i in
                     RoundedRectangle(cornerRadius: 3)
                         .fill(Heatmap.colorForLevel(i))
-                        .frame(width: 14, height: 14)
+                        .frame(width: 12, height: 12)
                 }
                 Text("많음").font(.caption2).foregroundStyle(.secondary)
+                Spacer()
+                RoundedRectangle(cornerRadius: 3)
+                    .stroke(Color.primary, lineWidth: 1.5)
+                    .frame(width: 12, height: 12)
+                Text("오늘").font(.caption2).foregroundStyle(.secondary)
             }
+            .padding(.top, 6)
         }
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(Color(uiColor: .secondarySystemGroupedBackground))
         )
+    }
+
+    /// "1/27 ~ 4/15" 형식 날짜 범위 (최근 12주 전 월요일 ~ 오늘)
+    private var heatmapDateRangeLabel: String {
+        var cal = Calendar(identifier: .gregorian)
+        cal.firstWeekday = 2
+        let today = cal.startOfDay(for: Date())
+        let weekday = cal.component(.weekday, from: today)
+        let daysSinceMonday = (weekday + 5) % 7
+        guard let thisMonday = cal.date(byAdding: .day, value: -daysSinceMonday, to: today),
+              let startMonday = cal.date(byAdding: .day, value: -7 * 11, to: thisMonday)
+        else { return "" }
+        let f = DateFormatter()
+        f.dateFormat = "M/d"
+        f.locale = Locale(identifier: "ko_KR")
+        return "\(f.string(from: startMonday)) ~ \(f.string(from: today))"
     }
 
     private var breakdownCard: some View {
@@ -322,12 +356,19 @@ struct StatsView: View {
 
 struct Heatmap: View {
     private let weeks = 12
+    private let spacing: CGFloat = 4
+    private let yLabelWidth: CGFloat = 18
 
-    private struct Cell: Identifiable {
+    struct Cell: Identifiable {
         let id: String
         let date: Date
         let total: Int
+        let counts: [Exercise: Int]
+        let isFuture: Bool
+        let isToday: Bool
     }
+
+    @State private var selectedCell: Cell?
 
     private var cells: [[Cell]] {
         var cal = Calendar(identifier: .gregorian)
@@ -347,13 +388,18 @@ struct Heatmap: View {
             var col: [Cell] = []
             for d in 0..<7 {
                 guard let date = cal.date(byAdding: .day, value: w * 7 + d, to: startMonday) else { continue }
-                if date > today {
-                    col.append(Cell(id: iso.string(from: date), date: date, total: -1))
-                } else {
-                    let counts = SharedStore.counts(on: date)
-                    let sum = counts.values.reduce(0, +)
-                    col.append(Cell(id: iso.string(from: date), date: date, total: sum))
-                }
+                let isFuture = date > today
+                let isToday = cal.isDate(date, inSameDayAs: today)
+                let counts: [Exercise: Int] = isFuture ? [:] : SharedStore.counts(on: date)
+                let sum = counts.values.reduce(0, +)
+                col.append(Cell(
+                    id: iso.string(from: date),
+                    date: date,
+                    total: sum,
+                    counts: counts,
+                    isFuture: isFuture,
+                    isToday: isToday
+                ))
             }
             columns.append(col)
         }
@@ -381,24 +427,108 @@ struct Heatmap: View {
         }
     }
 
+    /// 월/수/금/일 행에만 라벨 (0=월, 2=수, 4=금, 6=일).
+    private func yLabel(for row: Int) -> String {
+        switch row {
+        case 0: return "월"
+        case 2: return "수"
+        case 4: return "금"
+        case 6: return "일"
+        default: return ""
+        }
+    }
+
     var body: some View {
-        GeometryReader { geo in
-            let cols = cells
-            let spacing: CGFloat = 4
-            let colCount = CGFloat(max(cols.count, 1))
-            let cellW = max(4, (geo.size.width - spacing * (colCount - 1)) / colCount)
-            HStack(alignment: .top, spacing: spacing) {
-                ForEach(Array(cols.enumerated()), id: \.offset) { _, col in
-                    VStack(spacing: spacing) {
-                        ForEach(col) { cell in
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(cell.total < 0 ? Color.clear : Heatmap.colorForLevel(level(for: cell.total)))
-                                .frame(width: cellW, height: cellW)
-                        }
+        // 고정 셀 크기 — 가로폭 계산(282pt)이 iPhone SE 카드 내부(≈295pt)에도 들어감.
+        // GeometryReader 제거: 자체 사이즈 계산이 예측 가능해 범례와 겹치지 않음.
+        let cols = cells
+        let cellSize: CGFloat = 18
+
+        HStack(alignment: .top, spacing: spacing) {
+            // Y축 요일 라벨 (월/수/금/일)
+            VStack(spacing: spacing) {
+                ForEach(0..<7, id: \.self) { r in
+                    Text(yLabel(for: r))
+                        .font(.system(size: 9))
+                        .foregroundStyle(.secondary)
+                        .frame(width: yLabelWidth, height: cellSize, alignment: .trailing)
+                }
+            }
+
+            // 히트맵 셀 12열 × 7행
+            ForEach(Array(cols.enumerated()), id: \.offset) { _, col in
+                VStack(spacing: spacing) {
+                    ForEach(col) { cell in
+                        cellView(cell, size: cellSize)
                     }
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .popover(item: $selectedCell) { cell in
+            popoverContent(for: cell)
+        }
+    }
+
+    @ViewBuilder
+    private func cellView(_ cell: Cell, size: CGFloat) -> some View {
+        ZStack {
+            if cell.isFuture {
+                Color.clear
+            } else {
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Heatmap.colorForLevel(level(for: cell.total)))
+            }
+            if cell.isToday {
+                RoundedRectangle(cornerRadius: 3)
+                    .stroke(Color.primary, lineWidth: 1.5)
+            }
+        }
+        .frame(width: size, height: size)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            guard !cell.isFuture else { return }
+            selectedCell = cell
+        }
+    }
+
+    @ViewBuilder
+    private func popoverContent(for cell: Cell) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(formatDate(cell.date))
+                .font(.subheadline.weight(.semibold))
+            Divider()
+            ForEach(Exercise.allCases) { ex in
+                HStack(spacing: 8) {
+                    Circle()
+                        .fill(ex.accentColor)
+                        .frame(width: 8, height: 8)
+                    Text(ex.displayName)
+                        .font(.caption)
+                    Spacer()
+                    Text("\(cell.counts[ex] ?? 0)회")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Divider()
+            HStack {
+                Text("합계").font(.caption.weight(.semibold))
+                Spacer()
+                Text("\(cell.total)회")
+                    .font(.caption.monospacedDigit().weight(.semibold))
+            }
+        }
+        .padding(14)
+        .frame(minWidth: 180)
+        .presentationCompactAdaptation(.popover)
+    }
+
+    private func formatDate(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = "M월 d일 (E)"
+        f.locale = Locale(identifier: "ko_KR")
+        return f.string(from: date)
     }
 }
 
