@@ -1,13 +1,15 @@
 //
 //  NudgeSync.swift
-//  nudge (+ NudgeWatch Watch App — 같은 내용으로 복제)
+//  nudge (+ NudgeWatch Watch App, NudgeWatchComplication — 동일 내용 3곳 복제)
 //
 //  WatchConnectivity 기반 iPhone ↔ Watch 데이터 동기화.
 //  전략: last-writer-wins (SharedStore.lastModified 타임스탬프 비교)
 //  전송 방식: updateApplicationContext (최신 값만 배달, 용량 4KB 이내)
 //
-//  ⚠️ 이 파일은 iOS 타겟(nudge/)과 watchOS 타겟(NudgeWatch Watch App/)에 동일 내용으로 존재합니다.
-//     한쪽 수정 시 반드시 다른 쪽도 같이 수정하세요.
+//  ⚠️ 이 파일은 3개 타겟에 동일 내용으로 존재합니다. 한쪽 수정 시 반드시 다른 쪽도 같이 수정하세요:
+//     - nudge/NudgeSync.swift (iOS 앱) ← 이 파일
+//     - NudgeWatch Watch App/NudgeSync.swift (watchOS 앱)
+//     - NudgeWatchComplication/NudgeSync.swift (watchOS 컴플리케이션 — pushAwaitingActivation 추가본)
 //
 
 import Foundation
@@ -49,12 +51,14 @@ final class NudgeSync: NSObject, ObservableObject {
     func pushLocalChange() {
         #if canImport(WatchConnectivity)
         guard let session else {
+            SharedStore.appendDebugLog("iPhone:push skipped (WCSession unsupported)")
             #if DEBUG
             print("[NudgeSync] push skipped: WCSession unsupported")
             #endif
             return
         }
         guard session.activationState == .activated else {
+            SharedStore.appendDebugLog("iPhone:push skipped state=\(session.activationState.rawValue)")
             #if DEBUG
             print("[NudgeSync] push skipped: session not activated (state=\(session.activationState.rawValue))")
             #endif
@@ -64,6 +68,7 @@ final class NudgeSync: NSObject, ObservableObject {
         let reachable = session.isReachable
         let installed = session.isWatchAppInstalled
         let paired = session.isPaired
+        SharedStore.appendDebugLog("iPhone:push start paired=\(paired) installed=\(installed) reachable=\(reachable)")
         #if DEBUG
         print("[NudgeSync] push → paired=\(paired), installed=\(installed), reachable=\(reachable)")
         #endif
@@ -73,14 +78,16 @@ final class NudgeSync: NSObject, ObservableObject {
         #endif
         #endif
         let snapshot = SharedStore.syncSnapshot()
+        let mod = snapshot["lastModified"] as? TimeInterval ?? 0
         do {
             try session.updateApplicationContext(snapshot)
+            SharedStore.appendDebugLog("iPhone:push OK updateApplicationContext mod=\(Int(mod))")
             #if DEBUG
             let counts = (snapshot["counts"] as? [String: [String: Int]])?.count ?? 0
-            let mod = snapshot["lastModified"] as? TimeInterval ?? 0
             print("[NudgeSync] push OK: days=\(counts), lastModified=\(mod)")
             #endif
         } catch {
+            SharedStore.appendDebugLog("iPhone:push FAIL updateApplicationContext \(error.localizedDescription)")
             #if DEBUG
             print("[NudgeSync] push FAILED: \(error)")
             #endif

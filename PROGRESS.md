@@ -1,6 +1,6 @@
 # 🫱 Nudge (넛지) 앱 프로젝트 마스터보드
 
-> 마지막 업데이트: 2026-04-17 (Phase 3 컴플리케이션 Widget Extension 타겟 구현 완료 확인 — 이전 세션에서 실제로 추가되었으나 기록만 밀려 있던 상태)
+> 마지막 업데이트: 2026-04-17 (NudgeSync 3-copy 드리프트 정합화 — 실기기 동기화 버그 진단용 로그 보강)
 
 ---
 
@@ -98,6 +98,7 @@
 | 2026-04-15 | Phase 3 시작 — Watch 타겟 복원(Embed Watch Content + Dependency 재삽입), `NudgeWatch.entitlements` 생성 & 앱 그룹 연결, `SharedStore` 에 `lastModified` + `syncSnapshot/applyRemoteSnapshot` 추가, `NudgeSync` WC 레이어 (iOS + Watch 동일 코드), Watch 메인 앱 재작성(+1 큰 버튼, iPhone 활성 운동 읽기). 컴플리케이션은 Widget Extension 타겟 신규 추가 필요로 다음 세션 |
 | 2026-04-15 | 같은 날 연장 세션에서 **컴플리케이션 Widget Extension 타겟(`NudgeWatchComplicationExtension`) 실제 추가**: watchOS app-extension, Bundle ID `site.salarykorea.nudge.watchkitapp.NudgeWatchComplication`, Watch App 에 Embed + Dependency, App Group entitlements, `fileSystemSynchronizedGroups` 방식. 3종 패밀리(Circular/Inline/Rectangular) 구현, `NudgeComplicationConfigIntent`(운동 선택) + 3종 `recommendations()`, 탭 시 `IncrementExerciseIntent` → `reloadAllTimelines` → `NudgeSync.pushAwaitingActivation`(5초 활성화 대기) 로 iPhone 으로 WC push |
 | 2026-04-17 | 문서 정합화 — 이전 세션에서 이미 끝난 컴플리케이션 작업이 PROGRESS/masterboard/devlog 에 반영되지 않은 상태를 발견, Phase 3 상태를 🟡→🟢 로 갱신하고 체크박스 정리. 코드 수정 없음 |
+| 2026-04-17 | **NudgeSync 3-copy 드리프트 정합화 + 실기기 진단용 로그 보강** — Watch App `NudgeSync.swift` 가 가장 오래된 버전(5698b, iOS 쪽 `iPhone:recv` appendDebugLog 3줄 누락)이었음. iPhone↔Watch 양방향 동기화 버그 진단을 위해 Watch 쪽 recv 핸들러 3종에 `Watch:recv applicationContext/message/userInfo` appendDebugLog 추가. 추가로 iOS·Watch 양쪽의 `pushLocalChange` 에 `iPhone:push start/OK/FAIL` · `Watch:push start/OK/FAIL` 로그 추가해 outbound 방향도 🐜/🐞 뷰어에서 추적 가능하게 함. 세 파일의 헤더 코멘트를 "3개 타겟" 안내문으로 통일. 컴플리케이션 타겟 `NudgeSync.swift` 는 건드리지 않음(이미 pushAwaitingActivation 전용 로그 보유) |
 
 ---
 
@@ -119,6 +120,7 @@
 
 ## 🐛 알려진 이슈 & 해결 필요 사항
 
+- [ ] **🔴 최우선 / 실기기 페어에서 iPhone ↔ Watch 스마트스택 컴플리케이션 양방향 동기화 불능** — 증상: 컴플리케이션 탭 → iPhone 에 반영 안 됨, iPhone 에서 +1 → Watch 컴플리케이션/앱에 반영 안 됨. 양방향 다 안 됨. 진단 인프라(🐜 iOS, 🐞 Watch DebugLogView + 2026-04-17 드리프트 정합화로 Watch:recv/push 로그 추가)는 완비. 다음 세션에서 실기기 재현 → 양쪽 로그 캡처 → 실패 스테이지 식별 → 패치 순서로 진행. 용의자: (a) Widget Extension 프로세스 수명이 WCSession 활성화보다 짧아 pushAwaitingActivation 의 5초 대기가 timeout 가능성, (b) iPhone 이 백그라운드 상태에서 delivery 지연·드롭, (c) `applyRemoteSnapshot` 의 `lastModified` 비교에서 equal-or-older 스냅샷이 버려져 UI 새로고침 트리거 미발생.
 - [ ] **운동 아이콘 교체 (낮은 우선순위, 추후)** — 현재 SF Symbols(`figure.strengthtraining.traditional`·`figure.pilates`·`figure.cross.training`) 톤이 마음에 안 듦. `Exercise.symbolName` 한 곳 수정 = 앱·위젯·통계 전부 동시 반영. 커스텀 SVG → SF Symbols import(.sfsymbols) 또는 다른 SF Symbol 탐색.
 
 ---
