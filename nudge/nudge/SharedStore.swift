@@ -57,6 +57,29 @@ enum SharedStore {
     private static let activeExerciseKey = "activeExercise"
     private static let countsKey = "dailyCounts"
     private static let lastModifiedKey = "lastModified"
+    private static let debugLogKey = "syncDebugLog"
+
+    // MARK: Debug log (App Group 공유 — 위젯 프로세스 trace 확인용)
+
+    /// 위젯/extension 에서 호출해 App Group 에 trace 남김. Watch/iPhone 앱에서 읽어 확인.
+    static func appendDebugLog(_ message: String) {
+        let f = DateFormatter()
+        f.dateFormat = "HH:mm:ss.SSS"
+        let ts = f.string(from: Date())
+        let entry = "[\(ts)] \(message)"
+        var log = defaults.stringArray(forKey: debugLogKey) ?? []
+        log.append(entry)
+        if log.count > 100 { log = Array(log.suffix(100)) }
+        defaults.set(log, forKey: debugLogKey)
+    }
+
+    static var debugLog: [String] {
+        defaults.stringArray(forKey: debugLogKey) ?? []
+    }
+
+    static func clearDebugLog() {
+        defaults.removeObject(forKey: debugLogKey)
+    }
 
     private static var defaults: UserDefaults {
         UserDefaults(suiteName: appGroupID) ?? .standard

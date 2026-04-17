@@ -48,13 +48,41 @@ final class NudgeSync: NSObject, ObservableObject {
     /// 로컬에서 변경이 일어난 뒤 호출. 상대 기기에 최신 스냅샷 전송.
     func pushLocalChange() {
         #if canImport(WatchConnectivity)
-        guard let session, session.activationState == .activated else { return }
+        guard let session else {
+            #if DEBUG
+            print("[NudgeSync] push skipped: WCSession unsupported")
+            #endif
+            return
+        }
+        guard session.activationState == .activated else {
+            #if DEBUG
+            print("[NudgeSync] push skipped: session not activated (state=\(session.activationState.rawValue))")
+            #endif
+            return
+        }
+        #if os(iOS)
+        let reachable = session.isReachable
+        let installed = session.isWatchAppInstalled
+        let paired = session.isPaired
+        #if DEBUG
+        print("[NudgeSync] push → paired=\(paired), installed=\(installed), reachable=\(reachable)")
+        #endif
+        #else
+        #if DEBUG
+        print("[NudgeSync] push → reachable=\(session.isReachable), companionInstalled=\(session.isCompanionAppInstalled)")
+        #endif
+        #endif
         let snapshot = SharedStore.syncSnapshot()
         do {
             try session.updateApplicationContext(snapshot)
+            #if DEBUG
+            let counts = (snapshot["counts"] as? [String: [String: Int]])?.count ?? 0
+            let mod = snapshot["lastModified"] as? TimeInterval ?? 0
+            print("[NudgeSync] push OK: days=\(counts), lastModified=\(mod)")
+            #endif
         } catch {
             #if DEBUG
-            print("NudgeSync updateApplicationContext error: \(error)")
+            print("[NudgeSync] push FAILED: \(error)")
             #endif
         }
         #endif
@@ -66,7 +94,19 @@ extension NudgeSync: WCSessionDelegate {
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         #if DEBUG
-        print("NudgeSync activation: \(activationState.rawValue), err=\(String(describing: error))")
+        let stateName: String
+        switch activationState {
+        case .notActivated: stateName = "notActivated"
+        case .inactive: stateName = "inactive"
+        case .activated: stateName = "activated"
+        @unknown default: stateName = "unknown(\(activationState.rawValue))"
+        }
+        print("[NudgeSync] activation: \(stateName)\(error.map { " err=\($0)" } ?? "")")
+        #if os(iOS)
+        print("[NudgeSync] iOS session → paired=\(session.isPaired), watchAppInstalled=\(session.isWatchAppInstalled), reachable=\(session.isReachable)")
+        #else
+        print("[NudgeSync] Watch session → companionInstalled=\(session.isCompanionAppInstalled), reachable=\(session.isReachable)")
+        #endif
         #endif
     }
 
@@ -79,15 +119,33 @@ extension NudgeSync: WCSessionDelegate {
     #endif
 
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
+        #if DEBUG
+        print("[NudgeSync] recv applicationContext")
+        #endif
         handleRemote(applicationContext)
     }
 
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        #if DEBUG
+        print("[NudgeSync] recv message")
+        #endif
         handleRemote(message)
+    }
+
+    func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
+        #if DEBUG
+        print("[NudgeSync] recv userInfo")
+        #endif
+        handleRemote(userInfo)
     }
 
     private func handleRemote(_ payload: [String: Any]) {
         let changed = SharedStore.applyRemoteSnapshot(payload)
+        #if DEBUG
+        let mod = payload["lastModified"] as? TimeInterval ?? 0
+        let days = (payload["counts"] as? [String: [String: Int]])?.count ?? 0
+        print("[NudgeSync] applyRemote → changed=\(changed), days=\(days), remoteLastModified=\(mod)")
+        #endif
         DispatchQueue.main.async {
             self.lastSyncAt = Date()
             if changed {

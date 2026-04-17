@@ -1,6 +1,6 @@
 # 🫱 Nudge (넛지) 앱 프로젝트 마스터보드
 
-> 마지막 업데이트: 2026-04-15 (Phase 3 시작 — Watch 타겟 복원 + WC 동기화 + Watch 메인 화면)
+> 마지막 업데이트: 2026-04-17 (Phase 3 컴플리케이션 Widget Extension 타겟 구현 완료 확인 — 이전 세션에서 실제로 추가되었으나 기록만 밀려 있던 상태)
 
 ---
 
@@ -13,7 +13,7 @@
 | 운동 종목 | 푸시업, 풀업, 스쿼트 (3개 고정) |
 | 기술 스택 | SwiftUI + WidgetKit + App Intents + SwiftData + CloudKit |
 | 플랫폼 | iOS 17+ / watchOS |
-| 현재 단계 | Phase 1 — 핵심 구현 완료 (빌드/실기 검증 진행) |
+| 현재 단계 | Phase 3 — 컴플리케이션 타겟까지 구현 완료 (실기기 검증 대기) |
 | 예상 기간 | 4~5주 |
 | 시작일 | 2026-04-14 |
 
@@ -48,15 +48,19 @@
 - [x] 홈 화면 위젯 실기 검증 (탭 후 숫자 반영 확인 — 시뮬레이터)
 - [ ] 잠금 화면 위젯 검증 (실기기 필요)
 
-### Phase 3: Apple Watch (예상 1주) — 🟡 메인 앱 + WC 동기화 구현 (컴플리케이션은 다음 세션)
+### Phase 3: Apple Watch (예상 1주) — 🟢 구현 완료 / 실기기 검증 대기
 - [x] Watch 타겟 pbxproj 복원 (Embed Watch Content + Dependency 재삽입) + Watch entitlements 파일 생성 & 앱 그룹 연결
 - [x] 동기화 전략 결정: **WatchConnectivity 단독** (last-writer-wins, `SharedStore.lastModified` 타임스탬프 비교)
 - [x] `SharedStore` 확장: `lastModified`, `touch()`, `syncSnapshot(daysBack:)`, `applyRemoteSnapshot(_:)` (최근 60일만 payload)
 - [x] `NudgeSync` WC 레이어 (iOS + Watch 동일 코드 복제) — `WCSessionDelegate`, `updateApplicationContext` 기반
 - [x] iOS 측 hook: +1 / −1 / 세그먼트 전환 / 앱 foreground 복귀 / 원격 수신 시 UI 갱신
 - [x] watchOS 메인 화면 (+1 큰 버튼, 활성 운동 표시는 iPhone 설정값 읽기만)
-- [ ] 컴플리케이션 (circularSmall) — **별도 Widget Extension 타겟 필요 → Xcode UI 로 추가 (다음 세션)**
+- [x] **컴플리케이션 Widget Extension 타겟 추가** (`NudgeWatchComplicationExtension`, watchOS app-extension, Bundle ID `site.salarykorea.nudge.watchkitapp.NudgeWatchComplication`, Watch App이 Embed Foundation Extensions + Target Dependency 로 포함, App Group entitlements 연결, `fileSystemSynchronizedGroups` 방식)
+- [x] 컴플리케이션 3종 패밀리 구현: `.accessoryCircular`(아이콘+카운트, 탭=+1), `.accessoryInline`(상단 텍스트, 인라인은 Button 래핑 불가로 앱 열림), `.accessoryRectangular`(3종 운동 카드 각각 +1)
+- [x] 컴플리케이션 전용 `NudgeComplicationConfigIntent`(운동 선택 Picker) + `AppIntentConfiguration` + 3종 `recommendations()` 프리셋
+- [x] 컴플리케이션 탭 처리: `IncrementExerciseIntent` 실행 시 `SharedStore.increment` → `WidgetCenter.reloadAllTimelines` → `NudgeSync.pushAwaitingActivation`(세션 활성화까지 최대 5초 대기) 로 iPhone 으로 WC push
 - [ ] 실기기에서 iPhone ↔ Watch 양방향 동기화 검증 (시뮬로는 WC 제한 있음)
+- [ ] 실기기에서 컴플리케이션 3종 패밀리 시계 화면 배치 & 탭 동작 확인
 
 ### Phase 4: 통계 & 마무리 (예상 1주) — 🟡 통계 화면 구현 완료
 - [x] `RootView` TabView (오늘 / 통계)
@@ -92,6 +96,8 @@
 | 2026-04-15 | 앱 아이콘 A안(Ripple Tap) 1024 PNG 3종(light/dark/tinted) 생성 + `AppIcon.appiconset/Contents.json` 파일명 연결. 알파 제거 후 RGB 저장 |
 | 2026-04-15 | Phase 4 통계 화면 구현: `SharedStore`에 `recentDays(_:)` / `counts(on:)` / `recordedDateRange()` 추가. `StatsView` (주/월/연 스택 바 차트 + 최근 12주 히트맵 + 합계/운동별 카드). `RootView` TabView로 오늘/통계 분리 |
 | 2026-04-15 | Phase 3 시작 — Watch 타겟 복원(Embed Watch Content + Dependency 재삽입), `NudgeWatch.entitlements` 생성 & 앱 그룹 연결, `SharedStore` 에 `lastModified` + `syncSnapshot/applyRemoteSnapshot` 추가, `NudgeSync` WC 레이어 (iOS + Watch 동일 코드), Watch 메인 앱 재작성(+1 큰 버튼, iPhone 활성 운동 읽기). 컴플리케이션은 Widget Extension 타겟 신규 추가 필요로 다음 세션 |
+| 2026-04-15 | 같은 날 연장 세션에서 **컴플리케이션 Widget Extension 타겟(`NudgeWatchComplicationExtension`) 실제 추가**: watchOS app-extension, Bundle ID `site.salarykorea.nudge.watchkitapp.NudgeWatchComplication`, Watch App 에 Embed + Dependency, App Group entitlements, `fileSystemSynchronizedGroups` 방식. 3종 패밀리(Circular/Inline/Rectangular) 구현, `NudgeComplicationConfigIntent`(운동 선택) + 3종 `recommendations()`, 탭 시 `IncrementExerciseIntent` → `reloadAllTimelines` → `NudgeSync.pushAwaitingActivation`(5초 활성화 대기) 로 iPhone 으로 WC push |
+| 2026-04-17 | 문서 정합화 — 이전 세션에서 이미 끝난 컴플리케이션 작업이 PROGRESS/masterboard/devlog 에 반영되지 않은 상태를 발견, Phase 3 상태를 🟡→🟢 로 갱신하고 체크박스 정리. 코드 수정 없음 |
 
 ---
 

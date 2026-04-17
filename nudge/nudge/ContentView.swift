@@ -11,6 +11,7 @@ import WidgetKit
 struct ContentView: View {
     @State private var activeExercise: Exercise = SharedStore.activeExercise
     @State private var count: Int = 0
+    @State private var showingDebugLog = false
 
     // 앱이 foreground 로 돌아오면 위젯에서 찍힌 값이 반영되도록 tick 갱신
     @State private var tick: Int = 0
@@ -45,6 +46,9 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .nudgeDataChangedRemote)) { _ in
             refresh()
         }
+        .sheet(isPresented: $showingDebugLog) {
+            DebugLogView()
+        }
     }
 
     // MARK: Sections
@@ -55,6 +59,11 @@ struct ContentView: View {
                 Text("Nudge")
                     .font(.title2.weight(.bold))
                 Spacer()
+                Button { showingDebugLog = true } label: {
+                    Image(systemName: "ant")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
                 Text(todayString)
                     .font(.footnote)
                     .foregroundStyle(.secondary)

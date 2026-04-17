@@ -11,6 +11,9 @@
 		403A9E852F8F2026008F0938 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 403A9E842F8F2026008F0938 /* SwiftUI.framework */; };
 		403A9E922F8F2029008F0938 /* NudgeWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 403A9E802F8F2025008F0938 /* NudgeWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		403A9EBC2F8F2141008F0938 /* NudgeWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 403A9E9C2F8F213E008F0938 /* NudgeWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4057ACD12F8FCB9A003AE490 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 403A9E822F8F2025008F0938 /* WidgetKit.framework */; };
+		4057ACD22F8FCB9A003AE490 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 403A9E842F8F2026008F0938 /* SwiftUI.framework */; };
+		4057ACDF2F8FCB9D003AE490 /* NudgeWatchComplicationExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4057ACD02F8FCB9A003AE490 /* NudgeWatchComplicationExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +59,13 @@
 			remoteGlobalIDString = 403A9E9B2F8F213E008F0938;
 			remoteInfo = "NudgeWatch Watch App";
 		};
+		4057ACDD2F8FCB9D003AE490 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 403A9E452F8F1D87008F0938 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4057ACCF2F8FCB9A003AE490;
+			remoteInfo = NudgeWatchComplicationExtension;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -81,6 +91,17 @@
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4057ACE02F8FCB9D003AE490 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				4057ACDF2F8FCB9D003AE490 /* NudgeWatchComplicationExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -93,6 +114,8 @@
 		403A9E9C2F8F213E008F0938 /* NudgeWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NudgeWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		403A9EA82F8F2141008F0938 /* NudgeWatch Watch AppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "NudgeWatch Watch AppTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		403A9EB22F8F2141008F0938 /* NudgeWatch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "NudgeWatch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4057ACD02F8FCB9A003AE490 /* NudgeWatchComplicationExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NudgeWatchComplicationExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4057ACE72F8FCD22003AE490 /* NudgeWatchComplicationExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NudgeWatchComplicationExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -109,6 +132,13 @@
 				Info.plist,
 			);
 			target = 403A9E7F2F8F2025008F0938 /* NudgeWidgetExtension */;
+		};
+		4057ACE42F8FCB9D003AE490 /* Exceptions for "NudgeWatchComplication" folder in "NudgeWatchComplicationExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4057ACCF2F8FCB9A003AE490 /* NudgeWatchComplicationExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -152,6 +182,14 @@
 		403A9EB52F8F2141008F0938 /* NudgeWatch Watch AppUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "NudgeWatch Watch AppUITests";
+			sourceTree = "<group>";
+		};
+		4057ACD32F8FCB9A003AE490 /* NudgeWatchComplication */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4057ACE42F8FCB9D003AE490 /* Exceptions for "NudgeWatchComplication" folder in "NudgeWatchComplicationExtension" target */,
+			);
+			path = NudgeWatchComplication;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -208,12 +246,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4057ACCD2F8FCB9A003AE490 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4057ACD22F8FCB9A003AE490 /* SwiftUI.framework in Frameworks */,
+				4057ACD12F8FCB9A003AE490 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		403A9E442F8F1D87008F0938 = {
 			isa = PBXGroup;
 			children = (
+				4057ACE72F8FCD22003AE490 /* NudgeWatchComplicationExtension.entitlements */,
 				403A9E4F2F8F1D87008F0938 /* nudge */,
 				403A9E612F8F1D8B008F0938 /* nudgeTests */,
 				403A9E6B2F8F1D8B008F0938 /* nudgeUITests */,
@@ -221,6 +269,7 @@
 				403A9E9D2F8F213E008F0938 /* NudgeWatch Watch App */,
 				403A9EAB2F8F2141008F0938 /* NudgeWatch Watch AppTests */,
 				403A9EB52F8F2141008F0938 /* NudgeWatch Watch AppUITests */,
+				4057ACD32F8FCB9A003AE490 /* NudgeWatchComplication */,
 				403A9E812F8F2025008F0938 /* Frameworks */,
 				403A9E4E2F8F1D87008F0938 /* Products */,
 			);
@@ -236,6 +285,7 @@
 				403A9E9C2F8F213E008F0938 /* NudgeWatch Watch App.app */,
 				403A9EA82F8F2141008F0938 /* NudgeWatch Watch AppTests.xctest */,
 				403A9EB22F8F2141008F0938 /* NudgeWatch Watch AppUITests.xctest */,
+				4057ACD02F8FCB9A003AE490 /* NudgeWatchComplicationExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -353,10 +403,12 @@
 				403A9E982F8F213E008F0938 /* Sources */,
 				403A9E992F8F213E008F0938 /* Frameworks */,
 				403A9E9A2F8F213E008F0938 /* Resources */,
+				4057ACE02F8FCB9D003AE490 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				4057ACDE2F8FCB9D003AE490 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				403A9E9D2F8F213E008F0938 /* NudgeWatch Watch App */,
@@ -414,6 +466,28 @@
 			productReference = 403A9EB22F8F2141008F0938 /* NudgeWatch Watch AppUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		4057ACCF2F8FCB9A003AE490 /* NudgeWatchComplicationExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4057ACE32F8FCB9D003AE490 /* Build configuration list for PBXNativeTarget "NudgeWatchComplicationExtension" */;
+			buildPhases = (
+				4057ACCC2F8FCB9A003AE490 /* Sources */,
+				4057ACCD2F8FCB9A003AE490 /* Frameworks */,
+				4057ACCE2F8FCB9A003AE490 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4057ACD32F8FCB9A003AE490 /* NudgeWatchComplication */,
+			);
+			name = NudgeWatchComplicationExtension;
+			packageProductDependencies = (
+			);
+			productName = NudgeWatchComplicationExtension;
+			productReference = 4057ACD02F8FCB9A003AE490 /* NudgeWatchComplicationExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -449,6 +523,9 @@
 						CreatedOnToolsVersion = 26.4;
 						TestTargetID = 403A9E9B2F8F213E008F0938;
 					};
+					4057ACCF2F8FCB9A003AE490 = {
+						CreatedOnToolsVersion = 26.4;
+					};
 				};
 			};
 			buildConfigurationList = 403A9E482F8F1D87008F0938 /* Build configuration list for PBXProject "nudge" */;
@@ -472,6 +549,7 @@
 				403A9E9B2F8F213E008F0938 /* NudgeWatch Watch App */,
 				403A9EA72F8F2141008F0938 /* NudgeWatch Watch AppTests */,
 				403A9EB12F8F2141008F0938 /* NudgeWatch Watch AppUITests */,
+				4057ACCF2F8FCB9A003AE490 /* NudgeWatchComplicationExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -520,6 +598,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		403A9EB02F8F2141008F0938 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4057ACCE2F8FCB9A003AE490 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -578,6 +663,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4057ACCC2F8FCB9A003AE490 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -610,6 +702,11 @@
 			isa = PBXTargetDependency;
 			target = 403A9E9B2F8F213E008F0938 /* NudgeWatch Watch App */;
 			targetProxy = 403A9EBA2F8F2141008F0938 /* PBXContainerItemProxy */;
+		};
+		4057ACDE2F8FCB9D003AE490 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4057ACCF2F8FCB9A003AE490 /* NudgeWatchComplicationExtension */;
+			targetProxy = 4057ACDD2F8FCB9D003AE490 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1107,6 +1204,74 @@
 			};
 			name = Release;
 		};
+		4057ACE12F8FCB9D003AE490 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = NudgeWatchComplicationExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7YL733Y4S3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NudgeWatchComplication/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NudgeWatchComplication;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = site.salarykorea.nudge.watchkitapp.NudgeWatchComplication;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Debug;
+		};
+		4057ACE22F8FCB9D003AE490 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = NudgeWatchComplicationExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7YL733Y4S3;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NudgeWatchComplication/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NudgeWatchComplication;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = site.salarykorea.nudge.watchkitapp.NudgeWatchComplication;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1178,6 +1343,15 @@
 			buildConfigurations = (
 				403A9EC52F8F2141008F0938 /* Debug */,
 				403A9EC62F8F2141008F0938 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4057ACE32F8FCB9D003AE490 /* Build configuration list for PBXNativeTarget "NudgeWatchComplicationExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4057ACE12F8FCB9D003AE490 /* Debug */,
+				4057ACE22F8FCB9D003AE490 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -1,11 +1,12 @@
 //
 //  SharedStore.swift
-//  nudge
+//  NudgeWatchComplication
 //
-//  앱 ↔ 위젯 공용 데이터 저장소 (App Group UserDefaults 기반)
-//
-//  ⚠️ 이 파일은 NudgeWidget/SharedStore.swift 와 내용이 동일해야 합니다.
-//     한 쪽 수정 시 다른 쪽도 반드시 같이 수정하세요.
+//  ⚠️ 이 파일은 아래 4곳에 동일 내용으로 존재합니다. 한 쪽 수정 시 전부 동기화하세요:
+//     - nudge/SharedStore.swift (iOS 앱)
+//     - NudgeWidget/SharedStore.swift (iOS 위젯)
+//     - NudgeWatch Watch App/SharedStore.swift (watchOS 앱)
+//     - NudgeWatchComplication/SharedStore.swift (watchOS 컴플리케이션)
 //
 
 import Foundation
@@ -48,10 +49,7 @@ enum Exercise: String, CaseIterable, Codable, Identifiable {
 // MARK: - SharedStore
 
 /// 위젯 ↔ 앱이 공유하는 저장소.
-/// Phase 1 에선 App Group UserDefaults 기반.
-/// Phase 4(통계)에서 히스토리 필요해지면 SwiftData 또는 JSON 파일로 확장.
 enum SharedStore {
-    /// App Group identifier. nudge.entitlements / NudgeWidget.entitlements 와 일치.
     static let appGroupID = "group.site.salarykorea.nudge"
 
     private static let activeExerciseKey = "activeExercise"
@@ -61,7 +59,6 @@ enum SharedStore {
 
     // MARK: Debug log (App Group 공유 — 위젯 프로세스 trace 확인용)
 
-    /// 위젯/extension 에서 호출해 App Group 에 trace 남김. Watch/iPhone 앱에서 읽어 확인.
     static func appendDebugLog(_ message: String) {
         let f = DateFormatter()
         f.dateFormat = "HH:mm:ss.SSS"
@@ -98,20 +95,18 @@ enum SharedStore {
         }
     }
 
-    // MARK: Last modified (WatchConnectivity sync 용 last-writer-wins 타임스탬프)
+    // MARK: Last modified
 
     static var lastModified: TimeInterval {
         get { defaults.double(forKey: lastModifiedKey) }
         set { defaults.set(newValue, forKey: lastModifiedKey) }
     }
 
-    /// 데이터 변경 시 호출. 현재 시각으로 타임스탬프 갱신.
     static func touch(_ date: Date = Date()) {
         lastModified = date.timeIntervalSince1970
     }
 
     // MARK: Daily counts
-    // 저장 포맷: [ "2026-04-15": ["pushup": 10, "pullup": 3, "squat": 15] ]
 
     private static var allCounts: [String: [String: Int]] {
         get {
@@ -124,7 +119,6 @@ enum SharedStore {
         }
     }
 
-    /// "YYYY-MM-DD" 형식 키 (로컬 타임존 기준).
     static func dateKey(for date: Date = Date()) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
@@ -163,9 +157,8 @@ enum SharedStore {
         return next
     }
 
-    // MARK: Sync (WatchConnectivity payload 형태)
+    // MARK: Sync
 
-    /// WC 전송용 스냅샷. 전체 history 가 아니라 최근 60 일만 포함 (payload 크기 ↓).
     static func syncSnapshot(daysBack: Int = 60) -> [String: Any] {
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
@@ -186,12 +179,9 @@ enum SharedStore {
         ]
     }
 
-    /// WC 수신 시 병합. 원격 lastModified 가 로컬보다 최신이면 overwrite.
-    /// `true` 반환 시 UI 갱신 필요.
     @discardableResult
     static func applyRemoteSnapshot(_ payload: [String: Any]) -> Bool {
         guard let remoteModified = payload["lastModified"] as? TimeInterval else { return false }
-        // 같거나 과거면 무시
         guard remoteModified > lastModified else { return false }
 
         if let activeRaw = payload["activeExercise"] as? String,
@@ -199,7 +189,6 @@ enum SharedStore {
             defaults.set(ex.rawValue, forKey: activeExerciseKey)
         }
         if let remoteCounts = payload["counts"] as? [String: [String: Int]] {
-            // 최근 60일 치만 덮어쓰고, 원격이 보내지 않은 오래된 기록은 보존
             var merged = allCounts
             for (k, v) in remoteCounts { merged[k] = v }
             allCounts = merged
@@ -213,9 +202,8 @@ enum SharedStore {
         return day.values.reduce(0, +)
     }
 
-    // MARK: History (Phase 4 — stats)
+    // MARK: History
 
-    /// 날짜 하루의 운동별 카운트 dict 반환.
     static func counts(on date: Date) -> [Exercise: Int] {
         let day = allCounts[dateKey(for: date)] ?? [:]
         var out: [Exercise: Int] = [:]
@@ -225,7 +213,6 @@ enum SharedStore {
         return out
     }
 
-    /// 최근 `days` 일 (오늘 포함, 오래된 → 최신 순) 배열.
     static func recentDays(_ days: Int) -> [(date: Date, counts: [Exercise: Int])] {
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
@@ -235,7 +222,6 @@ enum SharedStore {
         }
     }
 
-    /// 전체 기록된 날짜 범위 (가장 오래된 날짜, 가장 최신 날짜). 기록 없으면 nil.
     static func recordedDateRange() -> (oldest: Date, newest: Date)? {
         let keys = allCounts.keys.sorted()
         guard let first = keys.first, let last = keys.last else { return nil }
