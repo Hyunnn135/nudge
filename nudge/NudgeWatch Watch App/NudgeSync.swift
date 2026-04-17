@@ -21,8 +21,9 @@ import WatchConnectivity
 
 #if os(iOS)
 import UIKit
-import WidgetKit
 #endif
+
+import WidgetKit  // iOS 14+/watchOS 9+ 양쪽 지원. 원격 수신 시 컴플리케이션 타임라인도 리프레시 필요
 
 final class NudgeSync: NSObject, ObservableObject {
 
@@ -160,9 +161,9 @@ extension NudgeSync: WCSessionDelegate {
             self.lastSyncAt = Date()
             if changed {
                 NotificationCenter.default.post(name: .nudgeDataChangedRemote, object: nil)
-                #if os(iOS)
+                // iOS: 홈 화면 위젯 리로드. watchOS: 컴플리케이션 리로드(iPhone→Watch 경로에서 필수).
                 WidgetCenter.shared.reloadAllTimelines()
-                #endif
+                SharedStore.appendDebugLog("handleRemote:reloadAllTimelines changed=true")
             }
         }
     }

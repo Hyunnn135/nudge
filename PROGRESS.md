@@ -1,6 +1,6 @@
 # 🫱 Nudge (넛지) 앱 프로젝트 마스터보드
 
-> 마지막 업데이트: 2026-04-17 (NudgeSync 3-copy 드리프트 정합화 — 실기기 동기화 버그 진단용 로그 보강)
+> 마지막 업데이트: 2026-04-17 (NudgeSync 3-copy 드리프트 정합화 + handleRemote WidgetCenter 가드 버그 수정 — 실기기 동기화 버그 진단용)
 
 ---
 
@@ -99,6 +99,7 @@
 | 2026-04-15 | 같은 날 연장 세션에서 **컴플리케이션 Widget Extension 타겟(`NudgeWatchComplicationExtension`) 실제 추가**: watchOS app-extension, Bundle ID `site.salarykorea.nudge.watchkitapp.NudgeWatchComplication`, Watch App 에 Embed + Dependency, App Group entitlements, `fileSystemSynchronizedGroups` 방식. 3종 패밀리(Circular/Inline/Rectangular) 구현, `NudgeComplicationConfigIntent`(운동 선택) + 3종 `recommendations()`, 탭 시 `IncrementExerciseIntent` → `reloadAllTimelines` → `NudgeSync.pushAwaitingActivation`(5초 활성화 대기) 로 iPhone 으로 WC push |
 | 2026-04-17 | 문서 정합화 — 이전 세션에서 이미 끝난 컴플리케이션 작업이 PROGRESS/masterboard/devlog 에 반영되지 않은 상태를 발견, Phase 3 상태를 🟡→🟢 로 갱신하고 체크박스 정리. 코드 수정 없음 |
 | 2026-04-17 | **NudgeSync 3-copy 드리프트 정합화 + 실기기 진단용 로그 보강** — Watch App `NudgeSync.swift` 가 가장 오래된 버전(5698b, iOS 쪽 `iPhone:recv` appendDebugLog 3줄 누락)이었음. iPhone↔Watch 양방향 동기화 버그 진단을 위해 Watch 쪽 recv 핸들러 3종에 `Watch:recv applicationContext/message/userInfo` appendDebugLog 추가. 추가로 iOS·Watch 양쪽의 `pushLocalChange` 에 `iPhone:push start/OK/FAIL` · `Watch:push start/OK/FAIL` 로그 추가해 outbound 방향도 🐜/🐞 뷰어에서 추적 가능하게 함. 세 파일의 헤더 코멘트를 "3개 타겟" 안내문으로 통일. 컴플리케이션 타겟 `NudgeSync.swift` 는 건드리지 않음(이미 pushAwaitingActivation 전용 로그 보유) |
+| 2026-04-17 | **handleRemote WidgetCenter 가드 버그 수정** — 정합화 중 발견한 잠재 버그. iOS/Watch App `NudgeSync.handleRemote` 의 `WidgetCenter.shared.reloadAllTimelines()` 가 `#if os(iOS)` 가드 안에 갇혀 있어 watchOS 에서는 호출 안 됨. 즉 iPhone→Watch 경로에서 Watch App 이 applicationContext 수신해도 컴플리케이션 타임라인이 리프레시 안 되는 구조. 가드 제거 + `import WidgetKit` 을 플랫폼 가드 밖으로 이동(iOS 14+/watchOS 9+ 양쪽 제공) + `handleRemote:reloadAllTimelines changed=true` appendDebugLog 추가해 호출 자체도 관찰 가능하게 함. iPhone→Watch 방향 반영 불능의 유력 원인 중 하나를 선제 제거 |
 
 ---
 
