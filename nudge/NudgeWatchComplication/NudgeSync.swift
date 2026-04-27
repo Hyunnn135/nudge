@@ -9,7 +9,7 @@
 //  ⚠️ 이 파일은 3개 타겟에 동일 내용으로 존재합니다. 한쪽 수정 시 반드시 다른 쪽도 같이 수정하세요:
 //     - nudge/NudgeSync.swift (iOS 앱)
 //     - NudgeWatch Watch App/NudgeSync.swift (watchOS 앱)
-//     - NudgeWatchComplication/NudgeSync.swift (watchOS 컴플리케이션 — 위젯 탭 push 용)
+//     - NudgeWatchComplication/NudgeSync.swift (watchOS 컴플리케이션 — pushAwaitingActivation 추가본) ← 이 파일
 //
 
 import Foundation
@@ -21,8 +21,9 @@ import WatchConnectivity
 
 #if os(iOS)
 import UIKit
-import WidgetKit
 #endif
+
+import WidgetKit  // iOS 14+/watchOS 9+ 양쪽 지원. 원격 수신 시 컴플리케이션 타임라인도 리프레시 필요
 
 final class NudgeSync: NSObject, ObservableObject {
 
@@ -52,12 +53,14 @@ final class NudgeSync: NSObject, ObservableObject {
     func pushLocalChange() {
         #if canImport(WatchConnectivity)
         guard let session else {
+            SharedStore.appendDebugLog("Comp:push skipped (WCSession unsupported)")
             #if DEBUG
             print("[NudgeSync] push skipped: WCSession unsupported")
             #endif
             return
         }
         guard session.activationState == .activated else {
+            SharedStore.appendDebugLog("Comp:push skipped state=\(session.activationState.rawValue)")
             #if DEBUG
             print("[NudgeSync] push skipped: session not activated (state=\(session.activationState.rawValue))")
             #endif
@@ -71,19 +74,22 @@ final class NudgeSync: NSObject, ObservableObject {
         print("[NudgeSync] push → paired=\(paired), installed=\(installed), reachable=\(reachable)")
         #endif
         #else
+        SharedStore.appendDebugLog("Comp:push start reachable=\(session.isReachable) companionInstalled=\(session.isCompanionAppInstalled)")
         #if DEBUG
         print("[NudgeSync] push → reachable=\(session.isReachable), companionInstalled=\(session.isCompanionAppInstalled)")
         #endif
         #endif
         let snapshot = SharedStore.syncSnapshot()
+        let mod = snapshot["lastModified"] as? TimeInterval ?? 0
         do {
             try session.updateApplicationContext(snapshot)
+            SharedStore.appendDebugLog("Comp:push OK updateApplicationContext mod=\(Int(mod))")
             #if DEBUG
             let counts = (snapshot["counts"] as? [String: [String: Int]])?.count ?? 0
-            let mod = snapshot["lastModified"] as? TimeInterval ?? 0
             print("[NudgeSync] push OK: days=\(counts), lastModified=\(mod)")
             #endif
         } catch {
+            SharedStore.appendDebugLog("Comp:push FAIL updateApplicationContext \(error.localizedDescription)")
             #if DEBUG
             print("[NudgeSync] push FAILED: \(error)")
             #endif
@@ -164,6 +170,7 @@ extension NudgeSync: WCSessionDelegate {
     #endif
 
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
+        SharedStore.appendDebugLog("Comp:recv applicationContext")
         #if DEBUG
         print("[NudgeSync] recv applicationContext")
         #endif
@@ -171,10 +178,19 @@ extension NudgeSync: WCSessionDelegate {
     }
 
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        SharedStore.appendDebugLog("Comp:recv message")
         #if DEBUG
         print("[NudgeSync] recv message")
         #endif
         handleRemote(message)
+    }
+
+    func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
+        SharedStore.appendDebugLog("Comp:recv userInfo")
+        #if DEBUG
+        print("[NudgeSync] recv userInfo")
+        #endif
+        handleRemote(userInfo)
     }
 
     private func handleRemote(_ payload: [String: Any]) {
@@ -188,9 +204,9 @@ extension NudgeSync: WCSessionDelegate {
             self.lastSyncAt = Date()
             if changed {
                 NotificationCenter.default.post(name: .nudgeDataChangedRemote, object: nil)
-                #if os(iOS)
+                // iOS: 홈 화면 위젯 리로드. watchOS: 컴플리케이션 리로드(iPhone→Watch 경로에서 필수).
                 WidgetCenter.shared.reloadAllTimelines()
-                #endif
+                SharedStore.appendDebugLog("handleRemote:reloadAllTimelines changed=true")
             }
         }
     }

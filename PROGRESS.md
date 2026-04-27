@@ -1,6 +1,6 @@
 # 🫱 Nudge (넛지) 앱 프로젝트 마스터보드
 
-> 마지막 업데이트: 2026-04-17 (NudgeSync 3-copy 드리프트 정합화 + handleRemote WidgetCenter 가드 버그 수정 — 실기기 동기화 버그 진단용)
+> 마지막 업데이트: 2026-04-22 (Complication NudgeSync 3-copy 정합화 마무리 + Watch ContentView didBecomeActive push 훅 추가 — 실기기 로그 캡처 직전 정리)
 
 ---
 
@@ -100,6 +100,8 @@
 | 2026-04-17 | 문서 정합화 — 이전 세션에서 이미 끝난 컴플리케이션 작업이 PROGRESS/masterboard/devlog 에 반영되지 않은 상태를 발견, Phase 3 상태를 🟡→🟢 로 갱신하고 체크박스 정리. 코드 수정 없음 |
 | 2026-04-17 | **NudgeSync 3-copy 드리프트 정합화 + 실기기 진단용 로그 보강** — Watch App `NudgeSync.swift` 가 가장 오래된 버전(5698b, iOS 쪽 `iPhone:recv` appendDebugLog 3줄 누락)이었음. iPhone↔Watch 양방향 동기화 버그 진단을 위해 Watch 쪽 recv 핸들러 3종에 `Watch:recv applicationContext/message/userInfo` appendDebugLog 추가. 추가로 iOS·Watch 양쪽의 `pushLocalChange` 에 `iPhone:push start/OK/FAIL` · `Watch:push start/OK/FAIL` 로그 추가해 outbound 방향도 🐜/🐞 뷰어에서 추적 가능하게 함. 세 파일의 헤더 코멘트를 "3개 타겟" 안내문으로 통일. 컴플리케이션 타겟 `NudgeSync.swift` 는 건드리지 않음(이미 pushAwaitingActivation 전용 로그 보유) |
 | 2026-04-17 | **handleRemote WidgetCenter 가드 버그 수정** — 정합화 중 발견한 잠재 버그. iOS/Watch App `NudgeSync.handleRemote` 의 `WidgetCenter.shared.reloadAllTimelines()` 가 `#if os(iOS)` 가드 안에 갇혀 있어 watchOS 에서는 호출 안 됨. 즉 iPhone→Watch 경로에서 Watch App 이 applicationContext 수신해도 컴플리케이션 타임라인이 리프레시 안 되는 구조. 가드 제거 + `import WidgetKit` 을 플랫폼 가드 밖으로 이동(iOS 14+/watchOS 9+ 양쪽 제공) + `handleRemote:reloadAllTimelines changed=true` appendDebugLog 추가해 호출 자체도 관찰 가능하게 함. iPhone→Watch 방향 반영 불능의 유력 원인 중 하나를 선제 제거 |
+| 2026-04-22 | **Complication NudgeSync 3-copy 정합화 마무리** — 04-17 커밋 `9528a87` 이 "complication copy has no handleRemote so untouched" 라는 잘못된 전제로 컴플리케이션 타깃을 건드리지 않았음. 실제로는 `NudgeWatchComplication/NudgeSync.swift:180-196` 에 `handleRemote` 가 존재. 이 세션에서 확인 → iOS/Watch 와 동일하게 맞춤: (1) `import WidgetKit` 을 `#if os(iOS)` 가드 밖으로 이동, (2) `handleRemote` 내 `#if os(iOS)` 가드 제거 + `handleRemote:reloadAllTimelines changed=true` appendDebugLog 추가, (3) `didReceiveUserInfo(_:)` 델리게이트 신규 추가(iOS/Watch 와 대칭), (4) `pushLocalChange`·recv 3종에 `Comp:` 접두사 appendDebugLog 심어 디버그 뷰에서 컴플리케이션 경로도 관찰 가능. 3-copy 핵심 로직 `diff` 결과 플랫폼 접두사(`iPhone:`·`Watch:`·`Comp:`)와 의도적 분기만 차이 나고 구조 동일 |
+| 2026-04-22 | **Watch ContentView 에 `WKApplication.didBecomeActiveNotification` 훅 추가** — iOS `ContentView` 는 `UIApplication.didBecomeActiveNotification` 으로 포그라운드 복귀 시마다 `refresh()` + `NudgeSync.pushLocalChange()` 호출하지만, Watch `ContentView` 는 대응 훅이 없었음. 컴플리케이션 탭 후 Watch App 포그라운드 복귀 시 iPhone 으로 push 가 누락될 수 있는 경로. watchOS 26.4 대응 `WKApplication.didBecomeActiveNotification` 기반 `onReceive` 추가 — 포그라운드 복귀 = 최신값 반영 + iPhone 푸시. iOS 와 동작 대칭. 양방향 동기화 2차 용의자 제거 |
 
 ---
 

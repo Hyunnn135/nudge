@@ -57,6 +57,12 @@ struct ContentView: View {
             }
             .padding(.horizontal, 4)
             .onAppear { refresh() }
+            // Watch 앱이 포그라운드로 돌아올 때 (컴플리케이션 탭 뒤 앱 열거나 Digital Crown 복귀 등)
+            // → 최신 값 반영 + iPhone 쪽으로 한번 push (iOS ContentView 의 didBecomeActive 대칭).
+            .onReceive(NotificationCenter.default.publisher(for: WKApplication.didBecomeActiveNotification)) { _ in
+                refresh()
+                NudgeSync.shared.pushLocalChange()
+            }
             // iPhone 에서 동기화로 데이터가 들어왔을 때
             .onReceive(NotificationCenter.default.publisher(for: .nudgeDataChangedRemote)) { _ in
                 refresh()
